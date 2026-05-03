@@ -63,6 +63,12 @@
                             </li>
                             <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
                                 <div class="list-group-item">
+                                    <input class="form-check-input col-visible-toggle" data-column-toggle='model' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_Model" checked>
+                                    <label class="form-check-label stretched-link" for="chkCol_Model">@translator.Translate(userLanguage, "Model")</label>
+                                </div>
+                            </li>
+                            <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
+                                <div class="list-group-item">
                                     <input class="form-check-input col-visible-toggle" data-column-toggle='equipped' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_Equipped" checked>
                                     <label class="form-check-label stretched-link" for="chkCol_Equipped">@translator.Translate(userLanguage, "Equipped")</label>
                                 </div>
@@ -71,6 +77,24 @@
                                 <div class="list-group-item">
                                     <input class="form-check-input col-visible-toggle" data-column-toggle='distance' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_Distance" checked>
                                     <label class="form-check-label stretched-link" for="chkCol_Distance">@translator.Translate(userLanguage, "Distance")</label>
+                                </div>
+                            </li>
+                            <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
+                                <div class="list-group-item">
+                                    <input class="form-check-input col-visible-toggle" data-column-toggle='purchasedate' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_PurchaseDate" checked>
+                                    <label class="form-check-label stretched-link" for="chkCol_PurchaseDate">@translator.Translate(userLanguage, "Purchase Date")</label>
+                                </div>
+                            </li>
+                            <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
+                                <div class="list-group-item">
+                                    <input class="form-check-input col-visible-toggle" data-column-toggle='saledate' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_SaleDate" checked>
+                                    <label class="form-check-label stretched-link" for="chkCol_SaleDate">@translator.Translate(userLanguage, "Sale Date")</label>
+                                </div>
+                            </li>
+                            <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
+                                <div class="list-group-item">
+                                    <input class="form-check-input col-visible-toggle" data-column-toggle='active' onChange="showTableColumns(this, 'EquipmentRecord')" type="checkbox" id="chkCol_Active" checked>
+                                    <label class="form-check-label stretched-link" for="chkCol_Active">@translator.Translate(userLanguage, "Active")</label>
                                 </div>
                             </li>
                             <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('EquipmentRecord')">
@@ -111,8 +135,12 @@
                 <thead class="sticky-top">
                     <tr class="d-flex">
                         <th scope="col" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description">@translator.Translate(userLanguage, "Description")</th>
+                        <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="model">@translator.Translate(userLanguage, "Model")</th>
                         <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipped">@translator.Translate(userLanguage, "Equipped")</th>
                         <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" onclick="toggleSort('equipment-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Distance")</th>
+                        <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="purchasedate">@translator.Translate(userLanguage, "Purchase Date")</th>
+                        <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="saledate">@translator.Translate(userLanguage, "Sale Date")</th>
+                        <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="active">@translator.Translate(userLanguage, "Active")</th>
                         <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                         <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                         @foreach (string extraFieldColumn in extraFields)
@@ -126,8 +154,12 @@
                     {
                         <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@equipmentRecord.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditEquipmentRecordModal,@equipmentRecord.Id)" data-tags='@string.Join(" ", equipmentRecord.Tags)'>
                             <td data-label="@translator.Translate(userLanguage, "Description")" class="col-3 col-xl-4 flex-grow-1 flex-shrink-1 text-truncate" data-column="description" data-record-type="cost">@equipmentRecord.Description</td>
+                            <td data-label="@translator.Translate(userLanguage, "Model")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="model">@(equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Model")?.Value ?? "---")</td>
                             <td data-label="@translator.Translate(userLanguage, "Equipped")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipped"><i class="bi bi-check-lg @(equipmentRecord.IsEquipped ? "" : "d-none")"></i></td>
                             <td data-label="@translator.Translate(userLanguage, "Distance")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance">@(equipmentRecord.DistanceTraveled == default ? "---" : equipmentRecord.DistanceTraveled)</td>
+                            <td data-label="@translator.Translate(userLanguage, "Purchase Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="purchasedate">@(equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "PurchaseDate")?.Value ?? "---")</td>
+                            <td data-label="@translator.Translate(userLanguage, "Sale Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="saledate">@(equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "SaleDate")?.Value ?? "---")</td>
+                            <td data-label="@translator.Translate(userLanguage, "Active")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="active">@((equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value ?? "false").ToLower() == "true" ? "True" : "False")</td>
                             <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", equipmentRecord.Files)</td>
                             <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@StaticHelper.TruncateStrings(equipmentRecord.Notes)</td>
                             @foreach (string extraFieldColumn in extraFields)
