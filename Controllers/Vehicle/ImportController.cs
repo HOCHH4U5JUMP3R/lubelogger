@@ -57,6 +57,7 @@ namespace CarCareTracker.Controllers
                         {
                             Date = DateTime.Now.ToShortDateString(),
                             Odometer = 12345.ToString(),
+                            FuelType = "Gasoline",
                             FuelConsumed = 12.34M.ToString(),
                             Cost = 45.67M.ToString("C"),
                             IsFillToFull = true.ToString(),
@@ -639,6 +640,7 @@ namespace CarCareTracker.Controllers
                     {
                         Date = x.Date.ToString(),
                         Cost = x.Cost.ToString(),
+                        FuelType = string.Empty,
                         FuelConsumed = x.Gallons.ToString(),
                         FuelEconomy = x.MilesPerGallon.ToString(),
                         Odometer = x.Mileage.ToString(),
