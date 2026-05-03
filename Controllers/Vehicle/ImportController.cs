@@ -57,12 +57,15 @@ namespace CarCareTracker.Controllers
                         {
                             Date = DateTime.Now.ToShortDateString(),
                             Odometer = 12345.ToString(),
+                            FuelType = "Gasoline",
                             FuelConsumed = 12.34M.ToString(),
+                            Energy = string.Empty,
+                            Mass = string.Empty,
                             Cost = 45.67M.ToString("C"),
+                            Co2 = string.Empty,
+                            Station = "Sample Station",
                             IsFillToFull = true.ToString(),
-                            MissedFuelUp = false.ToString(),
                             Notes = "Test Note",
-                            Tags = "test1 test2"
                         } };
                         using (var writer = new StreamWriter(fullExportFilePath))
                         {
@@ -639,13 +642,15 @@ namespace CarCareTracker.Controllers
                     {
                         Date = x.Date.ToString(),
                         Cost = x.Cost.ToString(),
+                        FuelType = x.ExtraFields.FirstOrDefault(y => y.Name == "FuelType")?.Value ?? string.Empty,
                         FuelConsumed = x.Gallons.ToString(),
-                        FuelEconomy = x.MilesPerGallon.ToString(),
+                        Energy = x.ExtraFields.FirstOrDefault(y => y.Name == "Energy (kWh)")?.Value ?? string.Empty,
+                        Mass = x.ExtraFields.FirstOrDefault(y => y.Name == "Mass (kg)")?.Value ?? string.Empty,
+                        Co2 = x.ExtraFields.FirstOrDefault(y => y.Name == "CO2 (kg)")?.Value ?? string.Empty,
+                        Station = x.ExtraFields.FirstOrDefault(y => y.Name == "Station")?.Value ?? string.Empty,
                         Odometer = x.Mileage.ToString(),
                         IsFillToFull = x.IsFillToFull.ToString(),
-                        MissedFuelUp = x.MissedFuelUp.ToString(),
                         Notes = x.Notes,
-                        Tags = string.Join(" ", x.Tags),
                         ExtraFields = x.ExtraFields
                     });
                     using (var writer = new StreamWriter(fullExportFilePath))
@@ -749,6 +754,11 @@ namespace CarCareTracker.Controllers
                                         Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
+                                    if (!string.IsNullOrWhiteSpace(importModel.FuelType)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "FuelType", Value = importModel.FuelType, IsRequired = requiredExtraFields.Contains("FuelType") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Energy)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Energy (kWh)", Value = importModel.Energy, IsRequired = requiredExtraFields.Contains("Energy (kWh)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Mass)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Mass (kg)", Value = importModel.Mass, IsRequired = requiredExtraFields.Contains("Mass (kg)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Co2)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "CO2 (kg)", Value = importModel.Co2, IsRequired = requiredExtraFields.Contains("CO2 (kg)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Station)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Station", Value = importModel.Station, IsRequired = requiredExtraFields.Contains("Station") });
                                     if (string.IsNullOrWhiteSpace(importModel.Cost) && !string.IsNullOrWhiteSpace(importModel.Price))
                                     {
                                         //cost was not given but price is.
@@ -767,7 +777,7 @@ namespace CarCareTracker.Controllers
                                     }
                                     else if (!string.IsNullOrWhiteSpace(importModel.IsFillToFull))
                                     {
-                                        var possibleFillToFullValues = new List<string> { "1", "true", "full" };
+                                        var possibleFillToFullValues = new List<string> { "1", "true", "full", "yes", "y" };
                                         var parsedBool = possibleFillToFullValues.Contains(importModel.IsFillToFull.Trim().ToLower());
                                         convertedRecord.IsFillToFull = parsedBool;
                                     }
