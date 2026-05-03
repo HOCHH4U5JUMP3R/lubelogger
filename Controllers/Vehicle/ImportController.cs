@@ -733,6 +733,33 @@ namespace CarCareTracker.Controllers
                     }
                     return parsedDate;
                 }
+                decimal ParseDecimalImportValue(string value)
+                {
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        return default;
+                    }
+                    var trimmedValue = value.Trim();
+                    if (decimal.TryParse(trimmedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedInvariant))
+                    {
+                        return parsedInvariant;
+                    }
+                    if (decimal.TryParse(trimmedValue, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal parsedCurrentCulture))
+                    {
+                        return parsedCurrentCulture;
+                    }
+                    var normalizedComma = trimmedValue.Replace(".", "").Replace(",", ".");
+                    if (decimal.TryParse(normalizedComma, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedNormalizedComma))
+                    {
+                        return parsedNormalizedComma;
+                    }
+                    var normalizedDot = trimmedValue.Replace(",", "");
+                    if (decimal.TryParse(normalizedDot, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedNormalizedDot))
+                    {
+                        return parsedNormalizedDot;
+                    }
+                    throw new FormatException($"Unable to parse decimal value '{value}'.");
+                }
                 //convert to target record type
                 switch (mode)
                 {
@@ -748,8 +775,8 @@ namespace CarCareTracker.Controllers
                                     {
                                         VehicleId = vehicleId,
                                         Date = parsedDate,
-                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
-                                        Gallons = decimal.Parse(importModel.FuelConsumed, NumberStyles.Any),
+                                        Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
+                                        Gallons = ParseDecimalImportValue(importModel.FuelConsumed),
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
                                         Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
@@ -763,12 +790,12 @@ namespace CarCareTracker.Controllers
                                     {
                                         //cost was not given but price is.
                                         //fuelly sometimes exports CSVs without total cost.
-                                        var parsedPrice = decimal.Parse(importModel.Price, NumberStyles.Any);
+                                        var parsedPrice = ParseDecimalImportValue(importModel.Price);
                                         convertedRecord.Cost = convertedRecord.Gallons * parsedPrice;
                                     }
                                     else
                                     {
-                                        convertedRecord.Cost = decimal.Parse(importModel.Cost, NumberStyles.Any);
+                                        convertedRecord.Cost = ParseDecimalImportValue(importModel.Cost);
                                     }
                                     if (string.IsNullOrWhiteSpace(importModel.IsFillToFull) && !string.IsNullOrWhiteSpace(importModel.PartialFuelUp))
                                     {
