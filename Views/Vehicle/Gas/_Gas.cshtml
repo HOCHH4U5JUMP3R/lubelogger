@@ -121,6 +121,12 @@
                     </li>
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
                         <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='fueltype' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_FuelType" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_FuelType">@translator.Translate(userLanguage, "Fuel Type")</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
                             <input class="form-check-input col-visible-toggle" data-column-toggle='delta' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Delta" checked>
                             <label class="form-check-label stretched-link" for="chkCol_Delta">@translator.Translate(userLanguage, "Delta")</label>
                         </div>
@@ -133,6 +139,18 @@
                     </li>
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
                         <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='energy' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Energy" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_Energy">Energy (kWh)</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='mass' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Mass" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_Mass">Mass (kg)</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
                             <input class="form-check-input col-visible-toggle" data-column-toggle='fueleconomy' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_FuelEconomy" checked>
                             <label class="form-check-label stretched-link" for="chkCol_FuelEconomy">@translator.Translate(userLanguage, "Fuel Economy")</label>
                         </div>
@@ -141,6 +159,18 @@
                         <div class="list-group-item">
                             <input class="form-check-input col-visible-toggle" data-column-toggle='cost' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Cost" checked>
                             <label class="form-check-label stretched-link" for="chkCol_Cost">@translator.Translate(userLanguage, "Cost")</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='co2' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Co2" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_Co2">CO2 (kg)</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='station' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_Station" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_Station">@translator.Translate(userLanguage, "Station")</label>
                         </div>
                     </li>
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
