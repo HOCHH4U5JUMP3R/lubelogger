@@ -882,6 +882,7 @@ namespace CarCareTracker.Helper
             //write headers
             _csv.WriteField(nameof(GasRecordExportModel.Date));
             _csv.WriteField(nameof(GasRecordExportModel.Odometer));
+            _csv.WriteField(nameof(GasRecordExportModel.FuelType));
             _csv.WriteField(nameof(GasRecordExportModel.FuelConsumed));
             _csv.WriteField(nameof(GasRecordExportModel.Cost));
             _csv.WriteField(nameof(GasRecordExportModel.FuelEconomy));
@@ -898,6 +899,7 @@ namespace CarCareTracker.Helper
             {
                 _csv.WriteField(genericRecord.Date);
                 _csv.WriteField(genericRecord.Odometer);
+                _csv.WriteField(genericRecord.FuelType);
                 _csv.WriteField(genericRecord.FuelConsumed);
                 _csv.WriteField(genericRecord.Cost);
                 _csv.WriteField(genericRecord.FuelEconomy);
