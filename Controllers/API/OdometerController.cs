@@ -93,7 +93,9 @@ namespace CarCareTracker.Controllers
             }
             var vehicleRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(vehicleId);
             //determine if conversion is needed.
-            if (vehicleRecords.All(x => x.InitialMileage == default))
+            var allInitialMileageAreDefault = vehicleRecords.All(x => x.InitialMileage == default);
+            var allInitialMileageHaveSameValue = vehicleRecords.Select(x => x.InitialMileage).Distinct().Count() == 1 && vehicleRecords.Count > 1;
+            if (allInitialMileageAreDefault || allInitialMileageHaveSameValue)
             {
                 vehicleRecords = _odometerLogic.AutoConvertOdometerRecord(vehicleRecords);
             }
