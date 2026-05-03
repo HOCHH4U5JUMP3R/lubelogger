@@ -880,16 +880,17 @@ namespace CarCareTracker.Helper
         {
             var extraHeaders = genericRecords.SelectMany(x => x.ExtraFields).Select(y => y.Name).Distinct();
             //write headers
-            _csv.WriteField(nameof(GasRecordExportModel.Date));
-            _csv.WriteField(nameof(GasRecordExportModel.Odometer));
-            _csv.WriteField(nameof(GasRecordExportModel.FuelType));
-            _csv.WriteField(nameof(GasRecordExportModel.FuelConsumed));
-            _csv.WriteField(nameof(GasRecordExportModel.Cost));
-            _csv.WriteField(nameof(GasRecordExportModel.FuelEconomy));
-            _csv.WriteField(nameof(GasRecordExportModel.IsFillToFull));
-            _csv.WriteField(nameof(GasRecordExportModel.MissedFuelUp));
-            _csv.WriteField(nameof(GasRecordExportModel.Notes));
-            _csv.WriteField(nameof(GasRecordExportModel.Tags));
+            _csv.WriteField("Date");
+            _csv.WriteField("Odometer (km)");
+            _csv.WriteField("Fuel Type");
+            _csv.WriteField("Amount (L)");
+            _csv.WriteField("Energy (kWh)");
+            _csv.WriteField("Mass (kg)");
+            _csv.WriteField("Total Cost");
+            _csv.WriteField("Full Tank");
+            _csv.WriteField("CO2 (kg)");
+            _csv.WriteField("Station");
+            _csv.WriteField("Notes");
             foreach (string extraHeader in extraHeaders)
             {
                 _csv.WriteField($"extrafield_{extraHeader}");
@@ -901,12 +902,13 @@ namespace CarCareTracker.Helper
                 _csv.WriteField(genericRecord.Odometer);
                 _csv.WriteField(genericRecord.FuelType);
                 _csv.WriteField(genericRecord.FuelConsumed);
+                _csv.WriteField(genericRecord.Energy);
+                _csv.WriteField(genericRecord.Mass);
                 _csv.WriteField(genericRecord.Cost);
-                _csv.WriteField(genericRecord.FuelEconomy);
-                _csv.WriteField(genericRecord.IsFillToFull);
-                _csv.WriteField(genericRecord.MissedFuelUp);
+                _csv.WriteField(genericRecord.IsFillToFull.ToLower() == "true" ? "Yes" : "No");
+                _csv.WriteField(genericRecord.Co2);
+                _csv.WriteField(genericRecord.Station);
                 _csv.WriteField(genericRecord.Notes);
-                _csv.WriteField(genericRecord.Tags);
                 foreach (string extraHeader in extraHeaders)
                 {
                     var extraField = genericRecord.ExtraFields.Where(x => x.Name == extraHeader).FirstOrDefault();
