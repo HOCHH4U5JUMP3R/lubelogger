@@ -873,9 +873,13 @@ namespace CarCareTracker.Controllers
                                         Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Service Record on {parsedDate.ToShortDateString()}" : importModel.Description,
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
                                         Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
-                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        Tags = [],
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
+                                    if (!string.IsNullOrWhiteSpace(importModel.Garage))
+                                    {
+                                        convertedRecord.ExtraFields.Add(new ExtraField { Name = "Werkstatt", Value = importModel.Garage, IsRequired = requiredExtraFields.Contains("Werkstatt") });
+                                    }
                                     return convertedRecord;
                                 }).ToList();
                             }

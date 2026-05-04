@@ -20,6 +20,7 @@ namespace CarCareTracker.Models
         public string Odometer { get; set; } = string.Empty;
         public string FuelType { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public string Garage { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         public string FuelConsumed { get; set; } = string.Empty;
         public string Energy { get; set; } = string.Empty;
