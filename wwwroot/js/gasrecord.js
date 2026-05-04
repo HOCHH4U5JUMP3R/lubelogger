@@ -91,6 +91,11 @@ function getAndValidateGasRecordValues() {
     var gasIsMissed = $("#gasIsMissed").is(":checked");
     var gasNotes = $("#gasRecordNotes").val();
     var gasTags = $("#gasRecordTag").val();
+    var gasFuelType = $("#gasRecordFuelType").val();
+    var gasEnergy = $("#gasRecordEnergy").val();
+    var gasMass = $("#gasRecordMass").val();
+    var gasCo2 = $("#gasRecordCo2").val();
+    var gasStation = $("#gasRecordStation").val();
     var vehicleId = GetVehicleId().vehicleId;
     var gasRecordId = getGasRecordModelData().id;
     //Odometer Adjustments
@@ -139,6 +144,11 @@ function getAndValidateGasRecordValues() {
     } else {
         $("#gasRecordCost").removeClass("is-invalid");
     }
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "FuelType", gasFuelType);
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Energy (kWh)", gasEnergy, true);
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Mass (kg)", gasMass, true);
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "CO2 (kg)", gasCo2, true);
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Station", gasStation);
     return {
         id: gasRecordId,
         hasError: hasError,
@@ -158,6 +168,18 @@ function getAndValidateGasRecordValues() {
         deletedRequisitionHistory: deletedSupplyUsageHistory,
         copySuppliesAttachment: copySuppliesAttachments
     }
+}
+function upsertGasExtendedField(extraFields, name, value, parseDecimal) {
+    extraFields = (extraFields || []).filter(x => (x.Name || x.name) != name);
+    if (value == undefined || value.trim() == "") {
+        return extraFields;
+    }
+    var outputValue = value.trim();
+    if (parseDecimal) {
+        outputValue = globalFloatToString(globalParseFloat(value).toString());
+    }
+    extraFields.push({ Name: name, Value: outputValue });
+    return extraFields;
 }
 
 function saveUserGasTabPreferences() {
