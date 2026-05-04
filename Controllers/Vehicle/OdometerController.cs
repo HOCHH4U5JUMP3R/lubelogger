@@ -64,17 +64,27 @@ namespace CarCareTracker.Controllers
         [HttpGet]
         public IActionResult GetAddOdometerRecordPartialView(int vehicleId)
         {
+            bool IsEquipmentActive(EquipmentRecord equipmentRecord)
+            {
+                var activeValue = equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value;
+                return string.IsNullOrWhiteSpace(activeValue) || activeValue.Trim().ToLower() == "true";
+            }
             return PartialView("Odometer/_OdometerRecordModal", new OdometerRecordInput() { 
                 InitialMileage = _odometerLogic.GetLastOdometerRecordMileage(vehicleId, new List<OdometerRecord>()), 
                 ExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.OdometerRecord).ExtraFields,
-                EquipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(vehicleId).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList()
+                EquipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(vehicleId).Where(IsEquipmentActive).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList()
             });
         }
         [HttpPost]
         public IActionResult GetOdometerRecordsEditModal(List<int> recordIds, int vehicleId)
         {
+            bool IsEquipmentActive(EquipmentRecord equipmentRecord)
+            {
+                var activeValue = equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value;
+                return string.IsNullOrWhiteSpace(activeValue) || activeValue.Trim().ToLower() == "true";
+            }
             var extraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.OdometerRecord).ExtraFields;
-            var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(vehicleId).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList();
+            var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(vehicleId).Where(IsEquipmentActive).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList();
             foreach(EquipmentRecord equipmentRecord in equipmentRecords)
             {
                 equipmentRecord.IsEquipped = false;
