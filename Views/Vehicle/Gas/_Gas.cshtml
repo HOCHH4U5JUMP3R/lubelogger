@@ -44,9 +44,10 @@
         fuelEconomyUnit = useHours ? (useMPG ? "h/g" : "l/100h") : (useMPG ? "mpg" : "l/100km");
     }
     var extraFields = new List<string>();
+    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station" };
     if (userConfig.EnableExtraFieldColumns)
     {
-        extraFields = Model.GasRecords.SelectMany(x => x.ExtraFields).Select(y => y.Name).Distinct().ToList();
+        extraFields = Model.GasRecords.SelectMany(x => x.ExtraFields).Select(y => y.Name).Where(x => !reservedGasFields.Contains(x)).Distinct().ToList();
     }
     var userColumnPreferences = userConfig.UserColumnPreferences.Where(x => x.Tab == ImportMode.GasRecord);
 }
