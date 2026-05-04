@@ -824,12 +824,22 @@ namespace CarCareTracker.Controllers
                             }
                             if (convertedRecords.Any())
                             {
+                                var existingGasRecords = _gasRecordDataAccess.GetGasRecordsByVehicleId(vehicleId);
+                                var existingGasRecordKeys = existingGasRecords
+                                    .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}")
+                                    .ToHashSet();
                                 foreach (var convertedRecord in convertedRecords)
                                 {
+                                    var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}";
+                                    if (existingGasRecordKeys.Contains(convertedRecordKey))
+                                    {
+                                        continue;
+                                    }
                                     //insert record into db, check to make sure fuelconsumed is not zero so we don't get a divide by zero error.
                                     if (convertedRecord.Gallons > 0)
                                     {
                                         _gasRecordDataAccess.SaveGasRecordToVehicle(convertedRecord);
+                                        existingGasRecordKeys.Add(convertedRecordKey);
                                         if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
                                         {
                                             _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
