@@ -82,6 +82,10 @@ function getAndValidateEquipmentRecordValues() {
     var equipmentNotes = $("#equipmentRecordNotes").val();
     var equipmentTags = $("#equipmentRecordTag").val();
     var equipmentIsEquipped = $("#equipmentEquippedCheck").is(":checked");
+    var equipmentModel = $("#equipmentRecordModel").val();
+    var equipmentPurchaseDate = $("#equipmentRecordPurchaseDate").val();
+    var equipmentSaleDate = $("#equipmentRecordSaleDate").val();
+    var equipmentIsActive = $("#equipmentActiveCheck").is(":checked");
     var vehicleId = GetVehicleId().vehicleId;
     var equipmentRecordId = getEquipmentRecordModelData().id;
     //validation
@@ -96,6 +100,10 @@ function getAndValidateEquipmentRecordValues() {
     } else {
         $("#equipmentRecordDescription").removeClass("is-invalid");
     }
+    extraFields.extraFields = upsertEquipmentField(extraFields.extraFields, "PurchaseDate", equipmentPurchaseDate);
+    extraFields.extraFields = upsertEquipmentField(extraFields.extraFields, "SaleDate", equipmentSaleDate);
+    extraFields.extraFields = upsertEquipmentField(extraFields.extraFields, "Active", equipmentIsActive ? "true" : "false");
+    extraFields.extraFields = upsertEquipmentField(extraFields.extraFields, "Model", equipmentModel);
     return {
         id: equipmentRecordId,
         hasError: hasError,
@@ -107,6 +115,14 @@ function getAndValidateEquipmentRecordValues() {
         tags: equipmentTags,
         extraFields: extraFields.extraFields
     }
+}
+function upsertEquipmentField(extraFields, name, value) {
+    extraFields = (extraFields || []).filter(x => (x.Name || x.name) != name);
+    if (value == undefined || value.toString().trim() == '') {
+        return extraFields;
+    }
+    extraFields.push({ Name: name, Value: value.toString().trim() });
+    return extraFields;
 }
 function toggleOdometerHistory() {
     let odometerHistoryContainer = $("#odometerHistoryModalContainer");
