@@ -117,11 +117,11 @@ function getAndValidateEquipmentRecordValues() {
     }
 }
 function upsertEquipmentField(extraFields, name, value) {
-    extraFields = (extraFields || []).filter(x => x.name != name);
+    extraFields = (extraFields || []).filter(x => (x.Name || x.name) != name);
     if (value == undefined || value.toString().trim() == '') {
         return extraFields;
     }
-    extraFields.push({ name: name, value: value.toString().trim() });
+    extraFields.push({ Name: name, Value: value.toString().trim() });
     return extraFields;
 }
 function toggleOdometerHistory() {

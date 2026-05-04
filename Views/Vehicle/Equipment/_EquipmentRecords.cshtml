@@ -159,7 +159,12 @@
                             <td data-label="@translator.Translate(userLanguage, "Distance")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance">@(equipmentRecord.DistanceTraveled == default ? "---" : equipmentRecord.DistanceTraveled)</td>
                             <td data-label="@translator.Translate(userLanguage, "Purchase Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="purchasedate">@(equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "PurchaseDate")?.Value ?? "---")</td>
                             <td data-label="@translator.Translate(userLanguage, "Sale Date")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="saledate">@(equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "SaleDate")?.Value ?? "---")</td>
-                            <td data-label="@translator.Translate(userLanguage, "Active")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="active"><i class="bi bi-check-lg @((equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value ?? "false").ToLower() == "true" ? "" : "d-none")"></i></td>
+                            <td data-label="@translator.Translate(userLanguage, "Active")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="active">
+                                @{
+                                    var isActive = (equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value ?? "false").ToLower() == "true";
+                                }
+                                <i class="bi @(isActive ? "bi-check-lg" : "bi-x-lg")"></i>
+                            </td>
                             <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", equipmentRecord.Files)</td>
                             <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@StaticHelper.TruncateStrings(equipmentRecord.Notes)</td>
                             @foreach (string extraFieldColumn in extraFields)

@@ -170,7 +170,7 @@ function getAndValidateGasRecordValues() {
     }
 }
 function upsertGasExtendedField(extraFields, name, value, parseDecimal) {
-    extraFields = (extraFields || []).filter(x => x.name != name);
+    extraFields = (extraFields || []).filter(x => (x.Name || x.name) != name);
     if (value == undefined || value.trim() == "") {
         return extraFields;
     }
@@ -178,7 +178,7 @@ function upsertGasExtendedField(extraFields, name, value, parseDecimal) {
     if (parseDecimal) {
         outputValue = globalFloatToString(globalParseFloat(value).toString());
     }
-    extraFields.push({ name: name, value: outputValue });
+    extraFields.push({ Name: name, Value: outputValue });
     return extraFields;
 }
 

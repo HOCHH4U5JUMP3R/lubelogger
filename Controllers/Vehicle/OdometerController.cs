@@ -177,7 +177,12 @@ namespace CarCareTracker.Controllers
                 return Redirect("/Error/Unauthorized");
             }
             //check for equipment
-            var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(result.VehicleId).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList();
+            bool IsEquipmentActive(EquipmentRecord equipmentRecord)
+            {
+                var activeValue = equipmentRecord.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value;
+                return string.IsNullOrWhiteSpace(activeValue) || activeValue.Trim().ToLower() == "true";
+            }
+            var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(result.VehicleId).Where(IsEquipmentActive).OrderByDescending(x => x.IsEquipped).ThenBy(x => x.Description).ToList();
             foreach(EquipmentRecord equipmentRecord in equipmentRecords)
             {
                 equipmentRecord.IsEquipped = result.EquipmentRecordId.Contains(equipmentRecord.Id);
