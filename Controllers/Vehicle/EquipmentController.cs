@@ -73,8 +73,11 @@ namespace CarCareTracker.Controllers
                 Files = result.Files,
                 Tags = result.Tags,
                 OdometerRecords = linkedOdometerRecords.ToList(),
-                ExtraFields = StaticHelper.AddExtraFields(result.ExtraFields, _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.EquipmentRecord).ExtraFields)
+                ExtraFields = result.ExtraFields
             };
+            var equipmentTemplateExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.EquipmentRecord).ExtraFields;
+            var existingEquipmentExtraFieldNames = convertedResult.ExtraFields.Select(x => x.Name).ToHashSet();
+            convertedResult.ExtraFields.AddRange(equipmentTemplateExtraFields.Where(x => !existingEquipmentExtraFieldNames.Contains(x.Name)));
             return PartialView("Equipment/_EquipmentRecordModal", convertedResult);
         }
         private OperationResponse DeleteEquipmentRecordWithChecks(int equipmentRecordId)

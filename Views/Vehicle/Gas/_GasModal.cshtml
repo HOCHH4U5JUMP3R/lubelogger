@@ -15,6 +15,8 @@
     var useUnitFuelCost = userConfig.UseUnitForFuelCost;
     string consumptionUnit;
     string distanceUnit;
+    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station" };
+    var customExtraFields = Model.GasRecord.ExtraFields.Where(x => !reservedGasFields.Contains(x.Name)).ToList();
     if (useKwh)
     {
         consumptionUnit = "kWh";
@@ -66,6 +68,16 @@
                     </div>
                     <label for="gasRecordGallons">@($"{translator.Translate(userLanguage, "Fuel Consumption")}({consumptionUnit})")</label>
                     <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" onkeyup="@(useThreeDecimalsConsumption ? "fixDecimalInput(this, 3)" : "fixDecimalInput(this, 2)")" id="gasRecordGallons" class="form-control" placeholder="@translator.Translate(userLanguage,"Amount of gas refueled")" value="@(isNew ? "" : Model.GasRecord.Gallons)">
+                    <label for="gasRecordFuelType">@translator.Translate(userLanguage, "Fuel Type")</label>
+                    <input type="text" id="gasRecordFuelType" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "FuelType")?.Value ?? "")">
+                    <label for="gasRecordEnergy">Energy (kWh)</label>
+                    <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" id="gasRecordEnergy" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Energy (kWh)")?.Value ?? "")">
+                    <label for="gasRecordMass">Mass (kg)</label>
+                    <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" id="gasRecordMass" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Mass (kg)")?.Value ?? "")">
+                    <label for="gasRecordCo2">CO2 (kg)</label>
+                    <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" id="gasRecordCo2" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "CO2 (kg)")?.Value ?? "")">
+                    <label for="gasRecordStation">@translator.Translate(userLanguage, "Station")</label>
+                    <input type="text" id="gasRecordStation" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Station")?.Value ?? "")">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="gasIsFillToFull" checked="@Model.GasRecord.IsFillToFull">
                         <label class="form-check-label" for="gasIsFillToFull">@translator.Translate(userLanguage,"Is Filled To Full")</label>
@@ -98,7 +110,7 @@
                             <!option value="@tag">@tag</!option>
                         }
                     </select>
-                    @await Html.PartialAsync("_ExtraField", Model.GasRecord.ExtraFields)
+                    @await Html.PartialAsync("_ExtraField", customExtraFields)
                 </div>
                 <div class="col-md-6 col-12">
                     <label for="gasRecordNotes">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
