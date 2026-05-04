@@ -1,6 +1,7 @@
 ﻿@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
+@inject IEquipmentRecordDataAccess equipmentRecordDataAccess
 @{
     var userConfig = config.GetUserConfig(User);
     var enableCsvImports = userConfig.EnableCsvImports;
@@ -83,7 +84,13 @@
                         </li>
                         <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('OdometerRecord')">
                             <div class="list-group-item">
-                                <input class="form-check-input col-visible-toggle" data-column-toggle='attachments' onChange="showTableColumns(this, 'OdometerRecord')" type="checkbox" id="chkCol_Attachment">
+                                <input class="form-check-input col-visible-toggle" data-column-toggle='equipment' onChange="showTableColumns(this, 'OdometerRecord')" type="checkbox" id="chkCol_Equipment" checked>
+                                <label class="form-check-label stretched-link" for="chkCol_Equipment">@translator.Translate(userLanguage, "Equipment")</label>
+                            </div>
+                        </li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('OdometerRecord')">
+                            <div class="list-group-item">
+                                <input class="form-check-input col-visible-toggle" data-column-toggle='attachments' onChange="showTableColumns(this, 'OdometerRecord')" type="checkbox" id="chkCol_Attachment" checked>
                                 <label class="form-check-label stretched-link" for="chkCol_Attachment">@translator.Translate(userLanguage, "Attachments")</label>
                             </div>
                         </li>
@@ -122,7 +129,8 @@
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="initialodometer">@translator.Translate(userLanguage, "Initial Odometer")</th>
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer">@translator.Translate(userLanguage, "Odometer")</th>
                     <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" onclick="toggleSort('odometer-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Distance")</th>
-                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
+                    <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipment">@translator.Translate(userLanguage, "Equipment")</th>
+                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                     <th scope="col" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
                     @foreach (string extraFieldColumn in extraFields)
                     {
@@ -138,7 +146,10 @@
                         <td data-label="@translator.Translate(userLanguage, "Initial Odometer")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="initialodometer">@odometerRecord.InitialMileage</td>
                         <td data-label="@translator.Translate(userLanguage, "Odometer")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="odometer" data-record-type="cost">@odometerRecord.Mileage</td>
                         <td data-label="@translator.Translate(userLanguage, "Distance")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="distance" data-record-type="distance">@(odometerRecord.DistanceTraveled == default ? "---" : odometerRecord.DistanceTraveled)</td>
-                        <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", odometerRecord.Files)</td>
+                        <td data-label="@translator.Translate(userLanguage, "Equipment")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="equipment">
+                            @(string.Join(", ", equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(odometerRecord.VehicleId).Where(x => odometerRecord.EquipmentRecordId.Contains(x.Id)).Select(x => x.Description)))
+                        </td>
+                        <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", odometerRecord.Files)</td>
                         <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-2 col-xl-3 flex-grow-1 flex-shrink-1 text-truncate" data-column="notes">@StaticHelper.TruncateStrings(odometerRecord.Notes)</td>
                         @foreach (string extraFieldColumn in extraFields)
                         {

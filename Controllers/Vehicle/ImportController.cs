@@ -847,7 +847,8 @@ namespace CarCareTracker.Controllers
                                                 Date = convertedRecord.Date,
                                                 VehicleId = convertedRecord.VehicleId,
                                                 Mileage = convertedRecord.Mileage,
-                                                Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.GasRecord, true))}: {convertedRecord.Notes}",
+                                                Notes = $"Kraftstoff via CSV: {convertedRecord.Notes}",
+                                                Tags = ["Benzin"],
                                                 Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.GasRecord, convertedRecord.Id, $"Gas Record - {convertedRecord.Mileage.ToString()}")
                                             });
                                         }
@@ -900,7 +901,8 @@ namespace CarCareTracker.Controllers
                                             Date = convertedRecord.Date,
                                             VehicleId = convertedRecord.VehicleId,
                                             Mileage = convertedRecord.Mileage,
-                                            Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.ServiceRecord, true))}: {convertedRecord.Notes}",
+                                            Notes = $"Wartung: {convertedRecord.Description}",
+                                            Tags = ["Wartung"],
                                             Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.ServiceRecord, convertedRecord.Id, convertedRecord.Description)
                                         });
                                     }
