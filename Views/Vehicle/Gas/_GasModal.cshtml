@@ -15,6 +15,8 @@
     var useUnitFuelCost = userConfig.UseUnitForFuelCost;
     string consumptionUnit;
     string distanceUnit;
+    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station" };
+    var customExtraFields = Model.GasRecord.ExtraFields.Where(x => !reservedGasFields.Contains(x.Name)).ToList();
     if (useKwh)
     {
         consumptionUnit = "kWh";
@@ -108,7 +110,7 @@
                             <!option value="@tag">@tag</!option>
                         }
                     </select>
-                    @await Html.PartialAsync("_ExtraField", Model.GasRecord.ExtraFields)
+                    @await Html.PartialAsync("_ExtraField", customExtraFields)
                 </div>
                 <div class="col-md-6 col-12">
                     <label for="gasRecordNotes">@translator.Translate(userLanguage,"Notes(optional)")<a class="link-underline link-underline-opacity-0" onclick="showLinks(this)"><i class="bi bi-markdown ms-2"></i></a></label>
