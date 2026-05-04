@@ -19,6 +19,18 @@
                     <input type="text" id="workAroundInput" style="height:0px; width:0px; display:none;">
                     <label for="equipmentRecordDescription">@translator.Translate(userLanguage, "Description")</label>
                     <input type="text" id="equipmentRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of equipment")" value="@Model.Description">
+                    <label for="equipmentRecordModel">@translator.Translate(userLanguage, "Model")</label>
+                    <input type="text" id="equipmentRecordModel" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "Model")?.Value ?? "")">
+                    <label for="equipmentRecordPurchaseDate">@translator.Translate(userLanguage, "Purchase Date")</label>
+                    <div class="input-group">
+                        <input type="text" id="equipmentRecordPurchaseDate" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "PurchaseDate")?.Value ?? "")">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                    </div>
+                    <label for="equipmentRecordSaleDate">@translator.Translate(userLanguage, "Sale Date")</label>
+                    <div class="input-group">
+                        <input type="text" id="equipmentRecordSaleDate" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "SaleDate")?.Value ?? "")">
+                        <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
+                    </div>
                     <label for="equipmentRecordTag">@translator.Translate(userLanguage, "Tags(optional)")</label>
                     <select multiple class="form-select" id="equipmentRecordTag">
                         @foreach (string tag in Model.Tags)
@@ -35,6 +47,10 @@
                         <div class="form-check form-switch form-check-inline">
                             <input class="form-check-input" type="checkbox" role="switch" id="equipmentEquippedCheck" checked="@Model.IsEquipped">
                             <label class="form-check-label" for="equipmentEquippedCheck">@translator.Translate(userLanguage, "Is Equipped")</label>
+                        </div>
+                        <div class="form-check form-switch form-check-inline">
+                            <input class="form-check-input" type="checkbox" role="switch" id="equipmentActiveCheck" checked="@((Model.ExtraFields.FirstOrDefault(x => x.Name == "Active")?.Value ?? "false").ToLower() == "true")">
+                            <label class="form-check-label" for="equipmentActiveCheck">@translator.Translate(userLanguage, "Active")</label>
                         </div>
                     </div>
                     <div>
@@ -71,4 +87,6 @@
     function getEquipmentRecordModelData() {
         return { id: @Model.Id}
     }
+    initDatePicker($('#equipmentRecordPurchaseDate'));
+    initDatePicker($('#equipmentRecordSaleDate'));
 </script>
