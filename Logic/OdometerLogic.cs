@@ -39,7 +39,13 @@ namespace CarCareTracker.Logic
             {
                 return false;
             }
-            var lastReportedMileage = GetLastOdometerRecordMileage(odometer.VehicleId, new List<OdometerRecord>());
+            var existingRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(odometer.VehicleId);
+            var lastRecordByDate = existingRecords
+                .Where(x => x.Date.Date <= odometer.Date.Date)
+                .OrderBy(x => x.Date)
+                .ThenBy(x => x.Mileage)
+                .LastOrDefault();
+            var lastReportedMileage = lastRecordByDate?.Mileage ?? GetLastOdometerRecordMileage(odometer.VehicleId, existingRecords);
             odometer.InitialMileage = lastReportedMileage != default ? lastReportedMileage : odometer.Mileage;
             //add equipment
             var equipmentRecords = _equipmentRecordDataAccess.GetEquipmentRecordsByVehicleId(odometer.VehicleId);
