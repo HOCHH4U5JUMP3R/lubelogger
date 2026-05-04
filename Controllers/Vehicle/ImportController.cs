@@ -57,12 +57,15 @@ namespace CarCareTracker.Controllers
                         {
                             Date = DateTime.Now.ToShortDateString(),
                             Odometer = 12345.ToString(),
+                            FuelType = "Gasoline",
                             FuelConsumed = 12.34M.ToString(),
+                            Energy = string.Empty,
+                            Mass = string.Empty,
                             Cost = 45.67M.ToString("C"),
+                            Co2 = string.Empty,
+                            Station = "Sample Station",
                             IsFillToFull = true.ToString(),
-                            MissedFuelUp = false.ToString(),
                             Notes = "Test Note",
-                            Tags = "test1 test2"
                         } };
                         using (var writer = new StreamWriter(fullExportFilePath))
                         {
@@ -639,13 +642,15 @@ namespace CarCareTracker.Controllers
                     {
                         Date = x.Date.ToString(),
                         Cost = x.Cost.ToString(),
+                        FuelType = x.ExtraFields.FirstOrDefault(y => y.Name == "FuelType")?.Value ?? string.Empty,
                         FuelConsumed = x.Gallons.ToString(),
-                        FuelEconomy = x.MilesPerGallon.ToString(),
+                        Energy = x.ExtraFields.FirstOrDefault(y => y.Name == "Energy (kWh)")?.Value ?? string.Empty,
+                        Mass = x.ExtraFields.FirstOrDefault(y => y.Name == "Mass (kg)")?.Value ?? string.Empty,
+                        Co2 = x.ExtraFields.FirstOrDefault(y => y.Name == "CO2 (kg)")?.Value ?? string.Empty,
+                        Station = x.ExtraFields.FirstOrDefault(y => y.Name == "Station")?.Value ?? string.Empty,
                         Odometer = x.Mileage.ToString(),
                         IsFillToFull = x.IsFillToFull.ToString(),
-                        MissedFuelUp = x.MissedFuelUp.ToString(),
                         Notes = x.Notes,
-                        Tags = string.Join(" ", x.Tags),
                         ExtraFields = x.ExtraFields
                     });
                     using (var writer = new StreamWriter(fullExportFilePath))
@@ -728,6 +733,33 @@ namespace CarCareTracker.Controllers
                     }
                     return parsedDate;
                 }
+                decimal ParseDecimalImportValue(string value)
+                {
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        return default;
+                    }
+                    var trimmedValue = value.Trim();
+                    if (decimal.TryParse(trimmedValue, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedInvariant))
+                    {
+                        return parsedInvariant;
+                    }
+                    if (decimal.TryParse(trimmedValue, NumberStyles.Any, CultureInfo.CurrentCulture, out decimal parsedCurrentCulture))
+                    {
+                        return parsedCurrentCulture;
+                    }
+                    var normalizedComma = trimmedValue.Replace(".", "").Replace(",", ".");
+                    if (decimal.TryParse(normalizedComma, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedNormalizedComma))
+                    {
+                        return parsedNormalizedComma;
+                    }
+                    var normalizedDot = trimmedValue.Replace(",", "");
+                    if (decimal.TryParse(normalizedDot, NumberStyles.Any, CultureInfo.InvariantCulture, out decimal parsedNormalizedDot))
+                    {
+                        return parsedNormalizedDot;
+                    }
+                    throw new FormatException($"Unable to parse decimal value '{value}'.");
+                }
                 //convert to target record type
                 switch (mode)
                 {
@@ -743,22 +775,27 @@ namespace CarCareTracker.Controllers
                                     {
                                         VehicleId = vehicleId,
                                         Date = parsedDate,
-                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
-                                        Gallons = decimal.Parse(importModel.FuelConsumed, NumberStyles.Any),
+                                        Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
+                                        Gallons = ParseDecimalImportValue(importModel.FuelConsumed),
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
                                         Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
+                                    if (!string.IsNullOrWhiteSpace(importModel.FuelType)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "FuelType", Value = importModel.FuelType, IsRequired = requiredExtraFields.Contains("FuelType") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Energy)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Energy (kWh)", Value = ParseDecimalImportValue(importModel.Energy).ToString(CultureInfo.CurrentCulture), IsRequired = requiredExtraFields.Contains("Energy (kWh)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Mass)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Mass (kg)", Value = ParseDecimalImportValue(importModel.Mass).ToString(CultureInfo.CurrentCulture), IsRequired = requiredExtraFields.Contains("Mass (kg)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Co2)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "CO2 (kg)", Value = ParseDecimalImportValue(importModel.Co2).ToString(CultureInfo.CurrentCulture), IsRequired = requiredExtraFields.Contains("CO2 (kg)") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.Station)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Station", Value = importModel.Station, IsRequired = requiredExtraFields.Contains("Station") });
                                     if (string.IsNullOrWhiteSpace(importModel.Cost) && !string.IsNullOrWhiteSpace(importModel.Price))
                                     {
                                         //cost was not given but price is.
                                         //fuelly sometimes exports CSVs without total cost.
-                                        var parsedPrice = decimal.Parse(importModel.Price, NumberStyles.Any);
+                                        var parsedPrice = ParseDecimalImportValue(importModel.Price);
                                         convertedRecord.Cost = convertedRecord.Gallons * parsedPrice;
                                     }
                                     else
                                     {
-                                        convertedRecord.Cost = decimal.Parse(importModel.Cost, NumberStyles.Any);
+                                        convertedRecord.Cost = ParseDecimalImportValue(importModel.Cost);
                                     }
                                     if (string.IsNullOrWhiteSpace(importModel.IsFillToFull) && !string.IsNullOrWhiteSpace(importModel.PartialFuelUp))
                                     {
@@ -767,7 +804,7 @@ namespace CarCareTracker.Controllers
                                     }
                                     else if (!string.IsNullOrWhiteSpace(importModel.IsFillToFull))
                                     {
-                                        var possibleFillToFullValues = new List<string> { "1", "true", "full" };
+                                        var possibleFillToFullValues = new List<string> { "1", "true", "full", "yes", "y" };
                                         var parsedBool = possibleFillToFullValues.Contains(importModel.IsFillToFull.Trim().ToLower());
                                         convertedRecord.IsFillToFull = parsedBool;
                                     }
@@ -787,12 +824,22 @@ namespace CarCareTracker.Controllers
                             }
                             if (convertedRecords.Any())
                             {
+                                var existingGasRecords = _gasRecordDataAccess.GetGasRecordsByVehicleId(vehicleId);
+                                var existingGasRecordKeys = existingGasRecords
+                                    .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}")
+                                    .ToHashSet();
                                 foreach (var convertedRecord in convertedRecords)
                                 {
+                                    var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}";
+                                    if (existingGasRecordKeys.Contains(convertedRecordKey))
+                                    {
+                                        continue;
+                                    }
                                     //insert record into db, check to make sure fuelconsumed is not zero so we don't get a divide by zero error.
                                     if (convertedRecord.Gallons > 0)
                                     {
                                         _gasRecordDataAccess.SaveGasRecordToVehicle(convertedRecord);
+                                        existingGasRecordKeys.Add(convertedRecordKey);
                                         if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
                                         {
                                             _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
@@ -800,7 +847,8 @@ namespace CarCareTracker.Controllers
                                                 Date = convertedRecord.Date,
                                                 VehicleId = convertedRecord.VehicleId,
                                                 Mileage = convertedRecord.Mileage,
-                                                Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.GasRecord, true))}: {convertedRecord.Notes}",
+                                                Notes = $"Kraftstoff via CSV: {convertedRecord.Notes}",
+                                                Tags = ["Benzin"],
                                                 Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.GasRecord, convertedRecord.Id, $"Gas Record - {convertedRecord.Mileage.ToString()}")
                                             });
                                         }
@@ -812,6 +860,7 @@ namespace CarCareTracker.Controllers
                         break;
                     case ImportMode.ServiceRecord:
                         {
+                            // Service CSV import mapping supports Type(s), Odometer (km), Cost, Garage, Notes.
                             var convertedRecords = new List<ServiceRecord>();
                             try
                             {
@@ -822,13 +871,17 @@ namespace CarCareTracker.Controllers
                                     {
                                         VehicleId = vehicleId,
                                         Date = parsedDate,
-                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
                                         Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Service Record on {parsedDate.ToShortDateString()}" : importModel.Description,
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
-                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
-                                        Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
+                                        Cost = ParseDecimalImportValue(importModel.Cost),
+                                        Tags = [],
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
+                                    if (!string.IsNullOrWhiteSpace(importModel.Garage))
+                                    {
+                                        convertedRecord.ExtraFields.Add(new ExtraField { Name = "Werkstatt", Value = importModel.Garage, IsRequired = requiredExtraFields.Contains("Werkstatt") });
+                                    }
                                     return convertedRecord;
                                 }).ToList();
                             }
@@ -839,9 +892,19 @@ namespace CarCareTracker.Controllers
                             }
                             if (convertedRecords.Any())
                             {
+                                var existingServiceRecords = _serviceRecordDataAccess.GetServiceRecordsByVehicleId(vehicleId);
+                                var existingServiceRecordKeys = existingServiceRecords
+                                    .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}:{x.Description}")
+                                    .ToHashSet();
                                 foreach (var convertedRecord in convertedRecords)
                                 {
+                                    var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}:{convertedRecord.Description}";
+                                    if (existingServiceRecordKeys.Contains(convertedRecordKey))
+                                    {
+                                        continue;
+                                    }
                                     _serviceRecordDataAccess.SaveServiceRecordToVehicle(convertedRecord);
+                                    existingServiceRecordKeys.Add(convertedRecordKey);
                                     if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
                                     {
                                         _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
@@ -849,7 +912,8 @@ namespace CarCareTracker.Controllers
                                             Date = convertedRecord.Date,
                                             VehicleId = convertedRecord.VehicleId,
                                             Mileage = convertedRecord.Mileage,
-                                            Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.ServiceRecord, true))}: {convertedRecord.Notes}",
+                                            Notes = $"Wartung: {convertedRecord.Description}",
+                                            Tags = ["Wartung"],
                                             Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.ServiceRecord, convertedRecord.Id, convertedRecord.Description)
                                         });
                                     }

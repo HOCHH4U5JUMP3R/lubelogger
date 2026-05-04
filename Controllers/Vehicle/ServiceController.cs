@@ -66,7 +66,8 @@ namespace CarCareTracker.Controllers
                     Date = DateTime.Parse(serviceRecord.Date),
                     VehicleId = serviceRecord.VehicleId,
                     Mileage = serviceRecord.Mileage,
-                    Notes = $"{_translator.Translate(_config.GetUserConfig(User).UserLanguage, StaticHelper.GetAutoInsertVerbiage(ImportMode.ServiceRecord, false))}: {serviceRecord.Description}",
+                    Notes = $"Wartung: {serviceRecord.Description}",
+                    Tags = ["Wartung"],
                     Files = StaticHelper.CreateAttachmentFromRecord(ImportMode.ServiceRecord, convertedRecord.Id, convertedRecord.Description)
                 });
             }
@@ -99,8 +100,11 @@ namespace CarCareTracker.Controllers
                 Files = result.Files,
                 Tags = result.Tags,
                 RequisitionHistory = result.RequisitionHistory,
-                ExtraFields = StaticHelper.AddExtraFields(result.ExtraFields, _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.ServiceRecord).ExtraFields)
+                ExtraFields = result.ExtraFields
             };
+            var serviceTemplateExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.ServiceRecord).ExtraFields;
+            var existingServiceExtraFieldNames = convertedResult.ExtraFields.Select(x => x.Name).ToHashSet();
+            convertedResult.ExtraFields.AddRange(serviceTemplateExtraFields.Where(x => !existingServiceExtraFieldNames.Contains(x.Name)));
             return PartialView("Service/_ServiceRecordModal", convertedResult);
         }
         private OperationResponse DeleteServiceRecordWithChecks(int serviceRecordId)

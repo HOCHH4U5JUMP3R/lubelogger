@@ -104,8 +104,11 @@ namespace CarCareTracker.Controllers
                 Notes = result.Notes,
                 Tags = result.Tags,
                 RequisitionHistory = result.RequisitionHistory,
-                ExtraFields = StaticHelper.AddExtraFields(result.ExtraFields, _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.GasRecord).ExtraFields)
+                ExtraFields = result.ExtraFields
             };
+            var gasTemplateExtraFields = _extraFieldDataAccess.GetExtraFieldsById((int)ImportMode.GasRecord).ExtraFields;
+            var existingGasExtraFieldNames = convertedResult.ExtraFields.Select(x => x.Name).ToHashSet();
+            convertedResult.ExtraFields.AddRange(gasTemplateExtraFields.Where(x => !existingGasExtraFieldNames.Contains(x.Name)));
             var vehicleData = _dataAccess.GetVehicleById(convertedResult.VehicleId);
             var vehicleIsElectric = vehicleData.IsElectric;
             var vehicleUseHours = vehicleData.UseHours;
