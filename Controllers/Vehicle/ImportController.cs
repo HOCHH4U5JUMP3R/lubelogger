@@ -874,7 +874,15 @@ namespace CarCareTracker.Controllers
                                         Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
                                         Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Service Record on {parsedDate.ToShortDateString()}" : importModel.Description,
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+<<<<<<< codex/locate-files-related-to-csv-import-function-hf5uo7
                                         Cost = ParseDecimalImportValue(importModel.Cost),
+=======
+<<<<<<< codex/locate-files-related-to-csv-import-function-9c7vl2
+                                        Cost = ParseDecimalImportValue(importModel.Cost),
+=======
+                                        Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+>>>>>>> main
+>>>>>>> main
                                         Tags = [],
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
