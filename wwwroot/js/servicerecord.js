@@ -88,6 +88,7 @@ function getAndValidateServiceRecordValues() {
     var serviceDate = $("#serviceRecordDate").val();
     var serviceMileage = parseInt(globalParseFloat($("#serviceRecordMileage").val())).toString();
     var serviceDescription = $("#serviceRecordDescription").val();
+    var serviceGarage = $("#serviceRecordGarage").val();
     var serviceCost = $("#serviceRecordCost").val();
     var serviceNotes = $("#serviceRecordNotes").val();
     var serviceTags = $("#serviceRecordTag").val();
@@ -129,6 +130,7 @@ function getAndValidateServiceRecordValues() {
     } else {
         $("#serviceRecordCost").removeClass("is-invalid");
     }
+    extraFields.extraFields = upsertServiceField(extraFields.extraFields, "Werkstatt", serviceGarage);
     return {
         id: serviceRecordId,
         hasError: hasError,
@@ -148,4 +150,12 @@ function getAndValidateServiceRecordValues() {
         reminderRecordId: recurringReminderRecordId,
         copySuppliesAttachment: copySuppliesAttachments
     }
+}
+function upsertServiceField(extraFields, name, value) {
+    extraFields = (extraFields || []).filter(x => (x.Name || x.name) != name);
+    if (value == undefined || value.toString().trim() == '') {
+        return extraFields;
+    }
+    extraFields.push({ Name: name, Value: value.toString().trim() });
+    return extraFields;
 }

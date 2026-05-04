@@ -870,10 +870,14 @@ namespace CarCareTracker.Controllers
                                     {
                                         VehicleId = vehicleId,
                                         Date = parsedDate,
-                                        Mileage = decimal.ToInt32(decimal.Parse(importModel.Odometer, NumberStyles.Any)),
+                                        Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
                                         Description = string.IsNullOrWhiteSpace(importModel.Description) ? $"Service Record on {parsedDate.ToShortDateString()}" : importModel.Description,
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
+<<<<<<< codex/locate-files-related-to-csv-import-function-9c7vl2
+                                        Cost = ParseDecimalImportValue(importModel.Cost),
+=======
                                         Cost = decimal.Parse(importModel.Cost, NumberStyles.Any),
+>>>>>>> main
                                         Tags = [],
                                         ExtraFields = importModel.ExtraFields.Any() ? importModel.ExtraFields.Select(x => new ExtraField { Name = x.Key, Value = x.Value, IsRequired = requiredExtraFields.Contains(x.Key) }).ToList() : new List<ExtraField>()
                                     };
@@ -891,9 +895,19 @@ namespace CarCareTracker.Controllers
                             }
                             if (convertedRecords.Any())
                             {
+                                var existingServiceRecords = _serviceRecordDataAccess.GetServiceRecordsByVehicleId(vehicleId);
+                                var existingServiceRecordKeys = existingServiceRecords
+                                    .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}:{x.Description}")
+                                    .ToHashSet();
                                 foreach (var convertedRecord in convertedRecords)
                                 {
+                                    var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}:{convertedRecord.Description}";
+                                    if (existingServiceRecordKeys.Contains(convertedRecordKey))
+                                    {
+                                        continue;
+                                    }
                                     _serviceRecordDataAccess.SaveServiceRecordToVehicle(convertedRecord);
+                                    existingServiceRecordKeys.Add(convertedRecordKey);
                                     if (_config.GetUserConfig(User).EnableAutoOdometerInsert)
                                     {
                                         _odometerLogic.AutoInsertOdometerRecord(new OdometerRecord
