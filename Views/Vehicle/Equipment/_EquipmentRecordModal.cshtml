@@ -23,12 +23,12 @@
                     <input type="text" id="equipmentRecordDescription" class="form-control" placeholder="@translator.Translate(userLanguage,"Description of equipment")" value="@Model.Description">
                     <label for="equipmentRecordModel">@translator.Translate(userLanguage, "Model")</label>
                     <input type="text" id="equipmentRecordModel" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "Model")?.Value ?? "")">
-                    <label for="equipmentRecordPurchaseDate">@translator.Translate(userLanguage, "Purchase Date")</label>
+                    <label for="equipmentRecordPurchaseDate">@translator.Translate(userLanguage, "Purchased Date")</label>
                     <div class="input-group">
                         <input type="text" id="equipmentRecordPurchaseDate" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "PurchaseDate")?.Value ?? "")">
                         <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
                     </div>
-                    <label for="equipmentRecordSaleDate">@translator.Translate(userLanguage, "Sale Date")</label>
+                    <label for="equipmentRecordSaleDate">@translator.Translate(userLanguage, "Sold Date")</label>
                     <div class="input-group">
                         <input type="text" id="equipmentRecordSaleDate" class="form-control" value="@(Model.ExtraFields.FirstOrDefault(x => x.Name == "SaleDate")?.Value ?? "")">
                         <span class="input-group-text"><i class="bi bi-calendar-event"></i></span>
