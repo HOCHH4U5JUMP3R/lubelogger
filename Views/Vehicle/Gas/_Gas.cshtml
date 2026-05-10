@@ -44,7 +44,7 @@
         fuelEconomyUnit = useHours ? (useMPG ? "h/g" : "l/100h") : (useMPG ? "mpg" : "l/100km");
     }
     var extraFields = new List<string>();
-    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station" };
+    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station", "Payment Type" };
     if (userConfig.EnableExtraFieldColumns)
     {
         extraFields = Model.GasRecords.SelectMany(x => x.ExtraFields).Select(y => y.Name).Where(x => !reservedGasFields.Contains(x)).Distinct().ToList();
@@ -58,7 +58,7 @@
             <span class="badge bg-success" data-aggregate-type="count">@($"{translator.Translate(userLanguage, "# of Gas Records")}: {Model.GasRecords.Count()}")</span>
             @if (Model.GasRecords.Where(x => x.MilesPerGallon > 0).Any())
             {
-                <span class="badge bg-primary" id="averageFuelMileageLabel">@($"{translator.Translate(userLanguage, "Average Fuel Economy")}: {gasHelper.GetAverageGasMileage(Model.GasRecords, useMPG)}")</span>
+                <span class="badge bg-primary" id="averageFuelMileageLabel">@($"{translator.Translate(userLanguage, "Average Fuel Economy")}: ⌀ {gasHelper.GetAverageGasMileage(Model.GasRecords, useMPG)}")</span>
                 if (useMPG)
                 {
                     <span class="badge bg-primary" id="minFuelMileageLabel">@($"{translator.Translate(userLanguage, "Min Fuel Economy")}: {Model.GasRecords.Where(y => y.MilesPerGallon > 0)?.Min(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
@@ -176,6 +176,12 @@
                     </li>
                     <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
                         <div class="list-group-item">
+                            <input class="form-check-input col-visible-toggle" data-column-toggle='paymenttype' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_PaymentType" checked>
+                            <label class="form-check-label stretched-link" for="chkCol_PaymentType">Zahlungsmethode</label>
+                        </div>
+                    </li>
+                    <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('GasRecord')">
+                        <div class="list-group-item">
                             <input class="form-check-input col-visible-toggle" data-column-toggle='unitcost' onChange="showTableColumns(this, 'GasRecord')" type="checkbox" id="chkCol_UnitCost" checked>
                             <label class="form-check-label stretched-link" for="chkCol_UnitCost">@translator.Translate(userLanguage, "Unit Cost")</label>
                         </div>
@@ -228,6 +234,7 @@
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" onclick="toggleSort('gas-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Cost")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="co2">CO2 (kg)</th>
                     <th scope="col" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="station">@translator.Translate(userLanguage, "Station")</th>
+                    <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="paymenttype">Zahlungsmethode</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" onclick="toggleSort('gas-tab-pane', this)" style="cursor:pointer;">@translator.Translate(userLanguage, "Unit Cost")</th>
                     <th scope="col" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@translator.Translate(userLanguage, "Attachments")</th>
                     <th scope="col" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="notes">@translator.Translate(userLanguage, "Notes")</th>
@@ -252,6 +259,19 @@
                         <td data-label="@translator.Translate(userLanguage, "Cost")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="cost" data-record-type="cost">@((hideZero && gasRecord.Cost == default) ? "---" : gasRecord.Cost.ToString(gasCostFormat))</td>
                         <td data-label="CO2 (kg)" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="co2">@(gasRecord.ExtraFields.FirstOrDefault(x => x.Name == "CO2 (kg)")?.Value ?? "---")</td>
                         <td data-label="@translator.Translate(userLanguage, "Station")" class="col-2 flex-grow-1 flex-shrink-1 text-truncate" data-column="station">@(gasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Station")?.Value ?? "---")</td>
+                        <td data-label="Zahlungsmethode" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="paymenttype">
+                            @{
+                                var paymentType = (gasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Payment Type")?.Value ?? string.Empty).Trim().ToLower();
+                                var paymentIcon = paymentType switch
+                                {
+                                    "bargeld" or "cash" => "💵",
+                                    "kreditkarte" or "credit card" or "card" => "💳",
+                                    "mobile zahlung" or "mobile payment" => "📱",
+                                    _ => "---"
+                                };
+                            }
+                            @paymentIcon
+                        </td>
                         <td data-label="@translator.Translate(userLanguage, "Unit Cost")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" data-column="unitcost" data-gas-type="unitcost">@((hideZero && gasRecord.CostPerGallon == default) ? "---" : gasRecord.CostPerGallon.ToString(gasCostFormat))</td>
                         <td data-label="@translator.Translate(userLanguage, "Attachments")" class="col-1 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="attachments">@await Html.PartialAsync("_AttachmentColumn", gasRecord.Files)</td>
                         <td data-label="@translator.Translate(userLanguage, "Notes")" class="col-3 flex-grow-1 flex-shrink-1 text-truncate" style='display:none;' data-column="notes">@StaticHelper.TruncateStrings(gasRecord.Notes)</td>

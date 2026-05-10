@@ -96,6 +96,7 @@ function getAndValidateGasRecordValues() {
     var gasMass = $("#gasRecordMass").val();
     var gasCo2 = $("#gasRecordCo2").val();
     var gasStation = $("#gasRecordStation").val();
+    var gasPaymentType = $("#gasRecordPaymentType").val();
     var vehicleId = GetVehicleId().vehicleId;
     var gasRecordId = getGasRecordModelData().id;
     //Odometer Adjustments
@@ -149,6 +150,7 @@ function getAndValidateGasRecordValues() {
     extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Mass (kg)", gasMass, true);
     extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "CO2 (kg)", gasCo2, true);
     extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Station", gasStation);
+    extraFields.extraFields = upsertGasExtendedField(extraFields.extraFields, "Payment Type", gasPaymentType);
     return {
         id: gasRecordId,
         hasError: hasError,
