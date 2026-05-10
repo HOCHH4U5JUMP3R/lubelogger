@@ -21,6 +21,7 @@ namespace CarCareTracker.MapProfile
             Map(m => m.Mass).Name(["mass (kg)", "mass"]);
             Map(m => m.Co2).Name(["co2 (kg)", "co2"]);
             Map(m => m.Station).Name(["station"]);
+            Map(m => m.PaymentType).Name(["payment type", "paymenttype", "zahlungsart", "zahlungsmethode"]);
             Map(m => m.Cost).Name(["cost", "total cost", "totalcost", "total price"]);
             Map(m => m.Notes).Name("notes", "note");
             Map(m => m.Price).Name(["price"]);

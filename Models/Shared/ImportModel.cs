@@ -27,6 +27,7 @@ namespace CarCareTracker.Models
         public string Mass { get; set; } = string.Empty;
         public string Co2 { get; set; } = string.Empty;
         public string Station { get; set; } = string.Empty;
+        public string PaymentType { get; set; } = string.Empty;
         public string Cost { get; set; } = string.Empty;
         public string Price { get; set; } = string.Empty;
         public string PartialFuelUp { get; set; } = string.Empty;

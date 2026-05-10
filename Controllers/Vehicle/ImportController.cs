@@ -771,11 +771,14 @@ namespace CarCareTracker.Controllers
                                 convertedRecords = importModels.Select(importModel =>
                                 {
                                     var parsedDate = GetParsedDateFromModel(importModel);
+                                    var parsedMileage = !string.IsNullOrWhiteSpace(importModel.Odometer)
+                                        ? decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer))
+                                        : decimal.ToInt32(ParseDecimalImportValue(importModel.InitialOdometer));
                                     var convertedRecord = new GasRecord()
                                     {
                                         VehicleId = vehicleId,
                                         Date = parsedDate,
-                                        Mileage = decimal.ToInt32(ParseDecimalImportValue(importModel.Odometer)),
+                                        Mileage = parsedMileage,
                                         Gallons = ParseDecimalImportValue(importModel.FuelConsumed),
                                         Notes = string.IsNullOrWhiteSpace(importModel.Notes) ? "" : importModel.Notes,
                                         Tags = string.IsNullOrWhiteSpace(importModel.Tags) ? [] : importModel.Tags.Split(" ").ToList(),
@@ -786,6 +789,7 @@ namespace CarCareTracker.Controllers
                                     if (!string.IsNullOrWhiteSpace(importModel.Mass)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Mass (kg)", Value = ParseDecimalImportValue(importModel.Mass).ToString(CultureInfo.CurrentCulture), IsRequired = requiredExtraFields.Contains("Mass (kg)") });
                                     if (!string.IsNullOrWhiteSpace(importModel.Co2)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "CO2 (kg)", Value = ParseDecimalImportValue(importModel.Co2).ToString(CultureInfo.CurrentCulture), IsRequired = requiredExtraFields.Contains("CO2 (kg)") });
                                     if (!string.IsNullOrWhiteSpace(importModel.Station)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Station", Value = importModel.Station, IsRequired = requiredExtraFields.Contains("Station") });
+                                    if (!string.IsNullOrWhiteSpace(importModel.PaymentType)) convertedRecord.ExtraFields.Add(new ExtraField { Name = "Payment Type", Value = importModel.PaymentType, IsRequired = requiredExtraFields.Contains("Payment Type") });
                                     if (string.IsNullOrWhiteSpace(importModel.Cost) && !string.IsNullOrWhiteSpace(importModel.Price))
                                     {
                                         //cost was not given but price is.
@@ -828,7 +832,7 @@ namespace CarCareTracker.Controllers
                                 var existingGasRecordKeys = existingGasRecords
                                     .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}")
                                     .ToHashSet();
-                                foreach (var convertedRecord in convertedRecords)
+                                foreach (var convertedRecord in convertedRecords.OrderBy(x => x.Date).ThenBy(x => x.Mileage))
                                 {
                                     var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}";
                                     if (existingGasRecordKeys.Contains(convertedRecordKey))

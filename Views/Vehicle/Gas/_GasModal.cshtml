@@ -15,7 +15,7 @@
     var useUnitFuelCost = userConfig.UseUnitForFuelCost;
     string consumptionUnit;
     string distanceUnit;
-    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station" };
+    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station", "Payment Type" };
     var customExtraFields = Model.GasRecord.ExtraFields.Where(x => !reservedGasFields.Contains(x.Name)).ToList();
     if (useKwh)
     {
@@ -78,6 +78,8 @@
                     <input type="text" inputmode="decimal" onkeydown="interceptDecimalKeys(event)" id="gasRecordCo2" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "CO2 (kg)")?.Value ?? "")">
                     <label for="gasRecordStation">@translator.Translate(userLanguage, "Station")</label>
                     <input type="text" id="gasRecordStation" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Station")?.Value ?? "")">
+                    <label for="gasRecordPaymentType">@translator.Translate(userLanguage, "Payment Type")</label>
+                    <input type="text" id="gasRecordPaymentType" class="form-control" value="@(Model.GasRecord.ExtraFields.FirstOrDefault(x => x.Name == "Payment Type")?.Value ?? "")">
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="gasIsFillToFull" checked="@Model.GasRecord.IsFillToFull">
                         <label class="form-check-label" for="gasIsFillToFull">@translator.Translate(userLanguage,"Is Filled To Full")</label>
