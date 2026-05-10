@@ -832,7 +832,7 @@ namespace CarCareTracker.Controllers
                                 var existingGasRecordKeys = existingGasRecords
                                     .Select(x => $"{x.Date.Date:yyyy-MM-dd}:{x.Mileage}")
                                     .ToHashSet();
-                                foreach (var convertedRecord in convertedRecords)
+                                foreach (var convertedRecord in convertedRecords.OrderBy(x => x.Date).ThenBy(x => x.Mileage))
                                 {
                                     var convertedRecordKey = $"{convertedRecord.Date.Date:yyyy-MM-dd}:{convertedRecord.Mileage}";
                                     if (existingGasRecordKeys.Contains(convertedRecordKey))
