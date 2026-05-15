@@ -43,6 +43,7 @@ namespace CarCareTracker.Logic
         private readonly IInspectionRecordDataAccess _inspectionRecordDataAccess;
         private readonly IInspectionRecordTemplateDataAccess _inspectionRecordTemplateDataAccess;
         private readonly IEquipmentRecordDataAccess _equipmentRecordDataAccess;
+        private readonly IGasHelper _gasHelper;
         private readonly ILogger<VehicleLogic> _logger;
 
         public VehicleLogic(
@@ -62,6 +63,7 @@ namespace CarCareTracker.Logic
             IInspectionRecordDataAccess inspectionRecordDataAccess,
             IInspectionRecordTemplateDataAccess inspectionRecordTemplateDataAccess,
             IEquipmentRecordDataAccess equipmentRecordDataAccess,
+            IGasHelper gasHelper,
             ILogger<VehicleLogic> logger
             ) {
             _serviceRecordDataAccess = serviceRecordDataAccess;
@@ -80,6 +82,7 @@ namespace CarCareTracker.Logic
             _inspectionRecordDataAccess = inspectionRecordDataAccess;
             _inspectionRecordTemplateDataAccess = inspectionRecordTemplateDataAccess;
             _equipmentRecordDataAccess = equipmentRecordDataAccess;
+            _gasHelper = gasHelper;
             _logger = logger;
         }
         public VehicleRecords GetVehicleRecords(int vehicleId)
@@ -296,6 +299,9 @@ namespace CarCareTracker.Logic
                 var taxRecords = _taxRecordDataAccess.GetTaxRecordsByVehicleId(vehicle.Id);
                 var planRecords = _planRecordDataAccess.GetPlanRecordsByVehicleId(vehicle.Id);
 
+                var gasViewModels = _gasHelper.GetGasRecordViewModels(gasRecords, true, false);
+                var averageFuelEconomy = _gasHelper.GetAverageGasMileage(gasViewModels, true);
+
                 var resultToAdd = new VehicleInfo()
                 {
                     VehicleData = vehicle,
@@ -308,6 +314,11 @@ namespace CarCareTracker.Logic
                     UpgradeRecordCost = upgradeRecords.Sum(x => x.Cost),
                     GasRecordCount = gasRecords.Count(),
                     GasRecordCost = gasRecords.Sum(x => x.Cost),
+                    MaintenanceTotalCost = serviceRecords.Sum(x => x.Cost) + repairRecords.Sum(x => x.Cost) + upgradeRecords.Sum(x => x.Cost),
+                    TotalDistanceTraveled = Math.Max(0, GetMaxMileage(vehicle.Id) - GetMinMileage(vehicle.Id)),
+                    TotalFuelConsumed = gasRecords.Sum(x => x.Gallons),
+                    AverageFuelEconomy = averageFuelEconomy,
+                    TotalFuelCost = gasRecords.Sum(x => x.Cost),
                     TaxRecordCount = taxRecords.Count(),
                     TaxRecordCost = taxRecords.Sum(x => x.Cost),
                     VeryUrgentReminderCount = results.Count(x => x.Urgency == ReminderUrgency.VeryUrgent),
