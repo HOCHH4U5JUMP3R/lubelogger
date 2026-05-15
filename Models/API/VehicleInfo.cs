@@ -18,6 +18,11 @@
         public decimal TaxRecordCost { get; set; }
         public int GasRecordCount { get; set; }
         public decimal GasRecordCost { get; set; }
+        public decimal MaintenanceTotalCost { get; set; }
+        public int TotalDistanceTraveled { get; set; }
+        public decimal TotalFuelConsumed { get; set; }
+        public string AverageFuelEconomy { get; set; } = string.Empty;
+        public decimal TotalFuelCost { get; set; }
         public int LastReportedOdometer { get; set; }
         public int PlanRecordBackLogCount { get; set; }
         public int PlanRecordInProgressCount { get; set; }
