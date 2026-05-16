@@ -35,7 +35,22 @@ namespace CarCareTracker.Controllers
                 var tagsFilter = parameters.Tags.Split(' ').Distinct();
                 vehicleRecords.RemoveAll(x => !x.Tags.Any(y => tagsFilter.Contains(y)));
             }
-            var result = vehicleRecords.Select(x => new EquipmentRecordAPIExportModel { VehicleId = x.VehicleId.ToString(), Id = x.Id.ToString(), Description = x.Description, IsEquipped = x.IsEquipped.ToString(), DistanceTraveled = x.DistanceTraveled.ToString(), Notes = x.Notes, ExtraFields = x.ExtraFields, Files = x.Files, Tags = string.Join(' ', x.Tags) });
+            var result = vehicleRecords.Select(x => new EquipmentRecordAPIExportModel
+            {
+                VehicleId = x.VehicleId.ToString(),
+                Id = x.Id.ToString(),
+                Description = x.Description,
+                IsEquipped = x.IsEquipped.ToString(),
+                Model = x.ExtraFields.FirstOrDefault(y => y.Name == "Model")?.Value ?? string.Empty,
+                PurchaseDate = x.ExtraFields.FirstOrDefault(y => y.Name == "PurchaseDate")?.Value ?? string.Empty,
+                SoldDate = x.ExtraFields.FirstOrDefault(y => y.Name == "SaleDate")?.Value ?? string.Empty,
+                Active = x.ExtraFields.FirstOrDefault(y => y.Name == "Active")?.Value ?? string.Empty,
+                DistanceTraveled = x.DistanceTraveled.ToString(),
+                Notes = x.Notes,
+                ExtraFields = x.ExtraFields,
+                Files = x.Files,
+                Tags = string.Join(' ', x.Tags)
+            });
             if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
             {
                 return Json(result, StaticHelper.GetInvariantOption());
@@ -68,7 +83,22 @@ namespace CarCareTracker.Controllers
             }
             var odometerRecords = _odometerRecordDataAccess.GetOdometerRecordsByVehicleId(vehicleId);
             var convertedRecords = _equipmentHelper.GetEquipmentRecordViewModels(vehicleRecords, odometerRecords);
-            var result = convertedRecords.Select(x => new EquipmentRecordAPIExportModel { VehicleId = x.VehicleId.ToString(), Id = x.Id.ToString(), Description = x.Description, IsEquipped = x.IsEquipped.ToString(), DistanceTraveled = x.DistanceTraveled.ToString(), Notes = x.Notes, ExtraFields = x.ExtraFields, Files = x.Files, Tags = string.Join(' ', x.Tags) });
+            var result = convertedRecords.Select(x => new EquipmentRecordAPIExportModel
+            {
+                VehicleId = x.VehicleId.ToString(),
+                Id = x.Id.ToString(),
+                Description = x.Description,
+                IsEquipped = x.IsEquipped.ToString(),
+                Model = x.ExtraFields.FirstOrDefault(y => y.Name == "Model")?.Value ?? string.Empty,
+                PurchaseDate = x.ExtraFields.FirstOrDefault(y => y.Name == "PurchaseDate")?.Value ?? string.Empty,
+                SoldDate = x.ExtraFields.FirstOrDefault(y => y.Name == "SaleDate")?.Value ?? string.Empty,
+                Active = x.ExtraFields.FirstOrDefault(y => y.Name == "Active")?.Value ?? string.Empty,
+                DistanceTraveled = x.DistanceTraveled.ToString(),
+                Notes = x.Notes,
+                ExtraFields = x.ExtraFields,
+                Files = x.Files,
+                Tags = string.Join(' ', x.Tags)
+            });
             if (_config.GetInvariantApi() || Request.Headers.ContainsKey("culture-invariant"))
             {
                 return Json(result, StaticHelper.GetInvariantOption());
@@ -110,6 +140,7 @@ namespace CarCareTracker.Controllers
             {
                 input.ExtraFields = new List<ExtraField>();
             }
+            UpsertEquipmentReservedExtraFields(input);
             try
             {
                 var equipmentRecord = new EquipmentRecord()
@@ -192,6 +223,7 @@ namespace CarCareTracker.Controllers
             {
                 input.ExtraFields = new List<ExtraField>();
             }
+            UpsertEquipmentReservedExtraFields(input);
             try
             {
                 //retrieve existing record
@@ -224,6 +256,31 @@ namespace CarCareTracker.Controllers
             {
                 Response.StatusCode = 500;
                 return Json(OperationResponse.Failed(ex.Message));
+            }
+        }
+
+        private static void UpsertEquipmentReservedExtraFields(EquipmentRecordExportModel input)
+        {
+            UpsertEquipmentExtraField(input.ExtraFields, "Model", input.Model);
+            UpsertEquipmentExtraField(input.ExtraFields, "PurchaseDate", input.PurchaseDate);
+            UpsertEquipmentExtraField(input.ExtraFields, "SaleDate", input.SoldDate);
+            UpsertEquipmentExtraField(input.ExtraFields, "Active", input.Active);
+        }
+
+        private static void UpsertEquipmentExtraField(List<ExtraField> extraFields, string name, string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+            var existingField = extraFields.FirstOrDefault(x => x.Name == name);
+            if (existingField != null)
+            {
+                existingField.Value = value;
+            }
+            else
+            {
+                extraFields.Add(new ExtraField { Name = name, Value = value });
             }
         }
     }

@@ -155,6 +155,13 @@ namespace CarCareTracker.Models
         public string Description { get; set; } = string.Empty;
         [JsonConverter(typeof(FromBoolOptional))]
         public string IsEquipped { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromDateOptional))]
+        public string PurchaseDate { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromDateOptional))]
+        public string SoldDate { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromBoolOptional))]
+        public string Active { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         public string Tags { get; set; } = string.Empty;
         public List<ExtraField> ExtraFields { get; set; } = new List<ExtraField>();
@@ -172,6 +179,13 @@ namespace CarCareTracker.Models
         public string Description { get; set; } = string.Empty;
         [JsonConverter(typeof(FromBoolOptional))]
         public string IsEquipped { get; set; } = string.Empty;
+        public string Model { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromDateOptional))]
+        public string PurchaseDate { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromDateOptional))]
+        public string SoldDate { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromBoolOptional))]
+        public string Active { get; set; } = string.Empty;
         [JsonConverter(typeof(FromIntOptional))]
         public string DistanceTraveled { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
