@@ -71,6 +71,8 @@ namespace CarCareTracker.Models
         public string Date { get; set; } = string.Empty;
         [JsonConverter(typeof(FromIntOptional))]
         public string Odometer { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromIntOptional))]
+        public string DeltaOdometer { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         [JsonConverter(typeof(FromDecimalOptional))]
@@ -91,6 +93,8 @@ namespace CarCareTracker.Models
         public string InitialOdometer { get; set; } = string.Empty;
         [JsonConverter(typeof(FromIntOptional))]
         public string Odometer { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromIntOptional))]
+        public string DeltaOdometer { get; set; } = string.Empty;
         public string Notes { get; set; } = string.Empty;
         public string Tags { get; set; } = string.Empty;
         public List<ExtraField> ExtraFields { get; set; } = new List<ExtraField>();
@@ -123,6 +127,8 @@ namespace CarCareTracker.Models
         public string Date { get; set; } = string.Empty;
         [JsonConverter(typeof(FromIntOptional))]
         public string Odometer { get; set; } = string.Empty;
+        [JsonConverter(typeof(FromIntOptional))]
+        public string DeltaOdometer { get; set; } = string.Empty;
         public string FuelType { get; set; } = string.Empty;
         [JsonConverter(typeof(FromDecimalOptional))]
         public string FuelConsumed { get; set; } = string.Empty;
