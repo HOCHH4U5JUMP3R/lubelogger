@@ -1,3 +1,4 @@
+@using System.Globalization
 @using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
@@ -47,12 +48,29 @@
         var value = line.Split(':', 2).LastOrDefault()?.Trim();
         return string.IsNullOrWhiteSpace(value) ? "---" : value;
     }
+
+    double ParseNumericTripValue(string noteText, string fieldPrefix)
+    {
+        var raw = ParseNoteValue(noteText, fieldPrefix);
+        if (string.IsNullOrWhiteSpace(raw) || raw == "---")
+        {
+            return 0;
+        }
+
+        var normalized = raw.Replace(',', '.');
+        return double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
+    }
+
+    var totalDistanceKm = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Distance (km)"));
+    var totalDurationSeconds = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Duration (s)"));
 }
 <div class="d-flex flex-column vehicleTabPane">
     <div class="row">
         <div class="d-flex justify-content-between">
             <div class="d-flex align-items-center flex-wrap gap-2">
                 <span class="badge bg-success">@($"{translator.Translate(userLanguage, "# of Trips")}: {Model.Count}")</span>
+                <span class="badge bg-primary">@($"Total Distance: {totalDistanceKm.ToString("F2", CultureInfo.InvariantCulture)} km")</span>
+                <span class="badge bg-primary">@($"Total Duration: {TimeSpan.FromSeconds(totalDurationSeconds):dd\\:hh\\:mm\\:ss}")</span>
             </div>
             <div class="lubelogger-record-add">
                 <div class="btn-group">

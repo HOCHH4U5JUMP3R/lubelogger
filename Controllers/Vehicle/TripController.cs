@@ -3,6 +3,7 @@ using CarCareTracker.Helper;
 using CarCareTracker.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
+using System.Text;
 
 namespace CarCareTracker.Controllers
 {
@@ -63,11 +64,11 @@ namespace CarCareTracker.Controllers
             var success = 0;
             foreach (var line in lines)
             {
-                var cols = line.Trim().Trim('\r').Split(',');
-                if (cols.Length < 9) continue;
-                var date = cols[0].Trim('"');
-                var start = cols[1].Trim('"');
-                var end = cols[2].Trim('"');
+                var cols = ParseCsvLine(line.Trim().Trim('\r'));
+                if (cols.Count < 9) continue;
+                var date = cols[0];
+                var start = cols[1];
+                var end = cols[2];
                 var distance = cols[3];
                 var duration = cols[4];
                 var avg = cols[5];
@@ -84,6 +85,34 @@ namespace CarCareTracker.Controllers
                 if (_noteDataAccess.SaveNoteToVehicle(note)) success++;
             }
             return Json(OperationResponse.Succeed($"{success} trips imported"));
+        }
+
+        private static List<string> ParseCsvLine(string line)
+        {
+            var result = new List<string>();
+            var current = new StringBuilder();
+            var inQuotes = false;
+
+            foreach (var ch in line)
+            {
+                if (ch == '"')
+                {
+                    inQuotes = !inQuotes;
+                    continue;
+                }
+
+                if (ch == ',' && !inQuotes)
+                {
+                    result.Add(current.ToString().Trim());
+                    current.Clear();
+                    continue;
+                }
+
+                current.Append(ch);
+            }
+
+            result.Add(current.ToString().Trim());
+            return result;
         }
     }
 }
