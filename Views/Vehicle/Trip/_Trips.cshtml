@@ -5,36 +5,6 @@
 <div class="d-flex flex-column vehicleTabPane">
 <div class="row">
     <div class="d-flex justify-content-between">
-        <div class="d-flex align-items-center flex-wrap gap-2">
-            <span class="badge bg-success" data-aggregate-type="count">@($"{translator.Translate(userLanguage, "# of Gas Records")}: {Model.GasRecords.Count()}")</span>
-            @if (Model.GasRecords.Where(x => x.MilesPerGallon > 0).Any())
-            {
-                <span class="badge bg-primary" id="averageFuelMileageLabel">@($"{translator.Translate(userLanguage, "Average Fuel Economy")}: ⌀ {gasHelper.GetAverageGasMileage(Model.GasRecords, useMPG)}")</span>
-                if (useMPG)
-                {
-                    <span class="badge bg-primary" id="minFuelMileageLabel">@($"{translator.Translate(userLanguage, "Min Fuel Economy")}: {Model.GasRecords.Where(y => y.MilesPerGallon > 0)?.Min(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
-                    <span class="badge bg-primary" id="maxFuelMileageLabel">@($"{translator.Translate(userLanguage, "Max Fuel Economy")}: {Model.GasRecords.Max(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
-                }
-                else
-                {
-                    <span class="badge bg-primary" id="minFuelMileageLabel">@($"{translator.Translate(userLanguage, "Min Fuel Economy")}: {Model.GasRecords.Max(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
-                    <span class="badge bg-primary" id="maxFuelMileageLabel">@($"{translator.Translate(userLanguage, "Max Fuel Economy")}: {Model.GasRecords.Where(y => y.MilesPerGallon > 0)?.Min(x => x.MilesPerGallon).ToString("F") ?? "0"}")</span>
-                }
-                <span class="badge bg-success" id="totalDistanceLabel">@($"{translator.Translate(userLanguage, "Total Distance")}: {Model.GasRecords.Sum(x => x.DeltaMileage).ToString() ?? "0"} {distanceUnit}")</span>
-            }
-            <span class="badge bg-success" id="totalFuelConsumedLabel">@($"{translator.Translate(userLanguage, "Total Fuel Consumed")}: {Model.GasRecords.Sum(x => x.Gallons).ToString("F")}")</span>
-            <span class="badge bg-success" data-aggregate-type="sum">@($"{translator.Translate(userLanguage, "Total Cost")}: {Model.GasRecords.Sum(x => x.Cost).ToString(gasCostFormat)}")</span>
-            @foreach (string recordTag in recordTags)
-            {
-                <span onclick="toggleGasFilter(this)" class="user-select-none rounded-pill badge bg-secondary tagfilter" style="cursor:pointer;">@recordTag</span>
-            }
-            <datalist id="tagList">
-                @foreach (string recordTag in recordTags)
-                {
-                    <!option value="@recordTag"></!option>
-                }
-            </datalist>
-        </div>
             <div class="lubelogger-record-add">
             <div class="btn-group">
                 <button onclick="showAddGasRecordModal()" class="btn btn-primary btn-md mt-1 mb-1"><i class="bi bi-pencil-square me-2"></i>@translator.Translate(userLanguage, "Add Gas Record")</button>
@@ -247,21 +217,4 @@
 {
     @await Html.PartialAsync("_UserColumnPreferences", userColumnPreferences)
 }
-<script>
-    @if (!string.IsNullOrWhiteSpace(preferredFuelEconomyUnit))
-    {
-        @:convertFuelMileageUnits(decodeHTMLEntities('@fuelEconomyUnit'), decodeHTMLEntities('@preferredFuelEconomyUnit'), false);
-    }
-    @if (!string.IsNullOrWhiteSpace(preferredGasUnit))
-    {
-        @:convertGasConsumptionUnits(decodeHTMLEntities('@consumptionUnit'), decodeHTMLEntities('@preferredGasUnit'), false);
-    }
-    function getGasModelData(){
-        return {
-            distanceUnit: decodeHTMLEntities('@distanceUnit'),
-            consumptionUnit: decodeHTMLEntities('@consumptionUnit'),
-            gasCostFormat: decodeHTMLEntities('@gasCostFormat'),
-            gasConsumptionFormat: decodeHTMLEntities('@gasConsumptionFormat')
-        }
-    }
-</script>
+
