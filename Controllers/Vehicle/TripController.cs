@@ -19,6 +19,26 @@ namespace CarCareTracker.Controllers
             return PartialView("Trip/_Trips", result);
         }
 
+
+        [TypeFilter(typeof(CollaboratorFilter))]
+        [HttpGet]
+        public IActionResult GetTripModal(int vehicleId, int noteId = 0)
+        {
+            Note tripRecord;
+            if (noteId > 0)
+            {
+                tripRecord = _noteDataAccess.GetNoteById(noteId);
+                if (tripRecord == null)
+                {
+                    return NotFound();
+                }
+            }
+            else
+            {
+                tripRecord = new Note { VehicleId = vehicleId, Tags = new List<string> { "trip" }, Files = new List<UploadedFiles>() };
+            }
+            return PartialView("Trip/_TripModal", tripRecord);
+        }
         [HttpPost]
         public IActionResult SaveTripToVehicleId(Note note)
         {
@@ -27,7 +47,7 @@ namespace CarCareTracker.Controllers
                 return Json(OperationResponse.Failed("Access Denied"));
             }
             note.Tags = note.Tags.Append("trip").Distinct().ToList();
-            note.Files = note.Files.Select(x => new UploadedFiles { Name = x.Name, Location = _fileHelper.MoveFileFromTemp(x.Location, "documents/") }).ToList();
+            note.Files = (note.Files ?? new List<UploadedFiles>()).Select(x => new UploadedFiles { Name = x.Name, Location = _fileHelper.MoveFileFromTemp(x.Location, "documents/") }).ToList();
             var result = _noteDataAccess.SaveNoteToVehicle(note);
             return Json(OperationResponse.Conditional(result, string.Empty, StaticHelper.GenericErrorMessage));
         }
