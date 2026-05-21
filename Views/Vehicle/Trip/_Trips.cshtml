@@ -178,37 +178,3 @@
         </table>
     </div>
 </div>
-<div class="row lubelogger-record-nav pt-1 hideOnPrint">
-    <div class="d-flex justify-content-between">
-        <button onclick="toggleSelectMode(this)" class="btn btn-outline-secondary btn-md mt-1 mb-1 select-mode-toggle"><i class="bi bi-check2-square"></i></button>
-            <button onclick="showAddGasRecordModal()" class="btn btn-primary btn-md mt-1 mb-1"><i class="bi bi-plus-lg"></i></button>
-        <div>
-            <button class="btn btn-outline-secondary btn-md mt-1 mb-1" onclick="showDropDownForRecordNav(this)" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-three-dots"></i></button>
-            <ul class="dropdown-menu record-dropdown">
-            </ul>
-        </div>
-    </div>
-</div>
-</div>
-
-
-<ul class="table-context-menu dropdown-menu" style="display:none;">
-    <li><a class="context-menu-multiple context-menu-select-all dropdown-item" href="#" onclick="selectAllRows()"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Select All")</span><i class="bi bi-check-square"></i></div></a></li>
-    <li><a class="context-menu-multiple context-menu-deselect-all dropdown-item" href="#" onclick="clearSelectedRows()"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Deselect All")</span><i class="bi bi-x-square"></i></div></a></li>
-    <li><a class="context-menu-active-multiple dropdown-item" href="#" onclick="editMultipleGasRecords(selectedRow)"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Edit Multiple")</span><i class="bi bi-pencil-square"></i></div></a></li>
-    <li><hr class="context-menu-multiple dropdown-divider"></li>
-    <li><a class="dropdown-item" href="#" onclick="duplicateRecords(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Duplicate")</span><i class="bi bi-copy"></i></div></a></li>
-    <li><a class="dropdown-item" href="#" onclick="duplicateRecordsToOtherVehicles(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Duplicate To Vehicle")</span><i class="bi bi-copy"></i></div></a></li>
-    <li><a class="dropdown-item" href="#" onclick="insertOdometer(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Create Odometer")</span><i class="bi bi-speedometer"></i></div></a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="#" onclick="printTabStickers(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Print")</span><i class="bi bi-printer"></i></div></a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item text-danger" href="#" onclick="deleteRecords(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Delete")</span><i class="bi bi-trash"></i></div></a></li>
-    <li><hr class="context-menu-odometer-adjustment dropdown-divider"></li>
-    <li><a class="context-menu-odometer-adjustment dropdown-item" href="#" onclick="adjustRecordsOdometer(selectedRow, 'GasRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Adjust Odometer")</span><i class="bi bi-speedometer"></i></div></a></li>
-</ul>
-@if (userColumnPreferences.Any())
-{
-    @await Html.PartialAsync("_UserColumnPreferences", userColumnPreferences)
-}
-
