@@ -1,55 +1,7 @@
 @using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
-@model GasRecordViewModelContainer
-@{
-    var userConfig = config.GetUserConfig(User);
-    var enableCsvImports = userConfig.EnableCsvImports;
-    var useMPG = userConfig.UseMPG;
-    var useUKMPG = userConfig.UseUKMPG;
-    var hideZero = userConfig.HideZero;
-    var useThreeDecimals = userConfig.UseThreeDecimalGasCost;
-    var useThreeDecimalsConsumption = userConfig.UseThreeDecimalGasConsumption;
-    var gasCostFormat = useThreeDecimals ? "C3" : "C2";
-    var gasConsumptionFormat = useThreeDecimalsConsumption ? "F3" : "F2";
-    var userLanguage = userConfig.UserLanguage;
-    var useKwh = Model.UseKwh;
-    var useHours = Model.UseHours;
-    var recordTags = Model.GasRecords.SelectMany(x => x.Tags).Distinct();
-    string preferredFuelEconomyUnit = userConfig.PreferredGasMileageUnit;
-    string preferredGasUnit = userConfig.PreferredGasUnit;
-    string consumptionUnit;
-    string fuelEconomyUnit;
-    string distanceUnit = useHours ? "h" : (useMPG ? "mi." : "km");
-    if (useKwh)
-    {
-        consumptionUnit = "kWh";
-        fuelEconomyUnit = useMPG ? $"{distanceUnit}/kWh" : $"kWh/100{distanceUnit}";
-    }
-    else if (useMPG && useUKMPG)
-    {
-        consumptionUnit = "imp gal";
-        fuelEconomyUnit = useHours ? "h/g" : "mpg";
-    }
-    else if (useUKMPG)
-    {
-        fuelEconomyUnit = useHours ? "l/100h" : "l/100mi.";
-        consumptionUnit = "l";
-        distanceUnit = useHours ? "h" : "mi.";
-    }
-    else
-    {
-        consumptionUnit = useMPG ? "US gal" : "l";
-        fuelEconomyUnit = useHours ? (useMPG ? "h/g" : "l/100h") : (useMPG ? "mpg" : "l/100km");
-    }
-    var extraFields = new List<string>();
-    var reservedGasFields = new List<string> { "FuelType", "Energy (kWh)", "Mass (kg)", "CO2 (kg)", "Station", "Payment Type" };
-    if (userConfig.EnableExtraFieldColumns)
-    {
-        extraFields = Model.GasRecords.SelectMany(x => x.ExtraFields).Select(y => y.Name).Where(x => !reservedGasFields.Contains(x)).Distinct().ToList();
-    }
-    var userColumnPreferences = userConfig.UserColumnPreferences.Where(x => x.Tab == ImportMode.GasRecord);
-}
+
 <div class="d-flex flex-column vehicleTabPane">
 <div class="row">
     <div class="d-flex justify-content-between">
