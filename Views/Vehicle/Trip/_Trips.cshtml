@@ -89,6 +89,14 @@
                             </li>
                             <li><hr class="dropdown-divider"></li>
                         }
+                        <li class="nav-no-copy"><hr class="dropdown-divider"></li>
+                        <li class="nav-no-copy">
+                            <div class="list-group-item">
+                                <input class="btn-check" type="checkbox" id="chkSelectMode" onchange="checkSelectModeToggle()">
+                                <label class="dropdown-item" for="chkSelectMode">@translator.Translate(userLanguage, "Select Mode")</label>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="printTab()">@translator.Translate(userLanguage, "Print")</a></li>
                     </ul>
                 </div>
@@ -117,7 +125,7 @@
                     {
                         @foreach (var trip in Model)
                         {
-                            <tr class="d-flex user-select-none" style="cursor:pointer;" onclick="showEditTripModal(@trip.Id)">
+                            <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@trip.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditTripModal,@trip.Id)">
                                 <td class="col-2 flex-grow-1 text-truncate" data-label="Date">@ParseDescriptionValue(trip.Description, 0)</td>
                                 <td class="col-2 flex-grow-1 text-truncate" data-label="Start Location">@ParseDescriptionValue(trip.Description, 1)</td>
                                 <td class="col-2 flex-grow-1 text-truncate" data-label="End Location">@ParseDescriptionValue(trip.Description, 2)</td>
