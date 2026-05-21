@@ -112,7 +112,11 @@ function getVehicleTrips(vehicleId) {
         if (data) {
             $("#trips-tab-pane").html(data);
             restoreScrollPosition();
+        } else {
+            $("#trips-tab-pane").html('<div class="alert alert-warning mt-2">Fahrten konnten nicht geladen werden.</div>');
         }
+    }).fail(function (xhr) {
+        $("#trips-tab-pane").html(`<div class="alert alert-danger mt-2">Fehler beim Laden von Fahrten (${xhr.status}).</div>`);
     });
 }
 
