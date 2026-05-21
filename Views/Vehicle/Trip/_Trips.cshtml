@@ -1,33 +1,48 @@
 @using CarCareTracker.Helper
 @inject IConfigHelper config
-@inject ITranslationHelper translator
 @model List<Note>
 @{
-    var userConfig = config.GetUserConfig(User);
-    var userLanguage = userConfig.UserLanguage;
+    var tripRecords = Model ?? new List<Note>();
 }
-<div class="vehicleTabPane">
-    <div class="d-flex justify-content-between my-2">
-        <span class="badge bg-success">Fahrten: @Model.Count</span>
-        <div>
-            <input type="file" id="tripCsvUpload" accept=".csv" class="d-none" onchange="importTripsCsv(this)">
-            <button class="btn btn-secondary" onclick="$('#tripCsvUpload').click()">CSV importieren</button>
-            <button class="btn btn-primary" onclick="showAddTripModal()">Fahrt hinzufügen</button>
+<div class="d-flex flex-column vehicleTabPane">
+    <div class="row">
+        <div class="d-flex justify-content-between align-items-center my-2">
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <span class="badge bg-success">Fahrten: @tripRecords.Count</span>
+            </div>
+            <div class="lubelogger-record-add">
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-md mt-1 mb-1" onclick="showAddTripModal()"><i class="bi bi-pencil-square me-2"></i>Neue Fahrt</button>
+                    <button class="btn btn-secondary btn-md mt-1 mb-1" onclick="$('#tripCsvUpload').click()"><i class="bi bi-file-earmark-arrow-up me-2"></i>CSV importieren</button>
+                </div>
+                <input type="file" id="tripCsvUpload" accept=".csv" class="d-none" onchange="importTripsCsv(this)">
+            </div>
         </div>
     </div>
-    <table class="table table-hover">
-        <thead><tr><th>Beschreibung</th><th>Details</th><th>Anhänge</th></tr></thead>
-        <tbody>
-            @foreach (var trip in Model)
-            {
-                <tr style="cursor:pointer;" onclick="showEditTripModal(@trip.Id)">
-                    <td>@trip.Description</td>
-                    <td style="white-space:pre-line;">@trip.NoteText</td>
-                    <td>@await Html.PartialAsync("_AttachmentColumn", trip.Files)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+
+    <div class="row vehicleDetailTabContainer flex-grow-1">
+        <div class="col-12">
+            <table class="table table-hover ll-responsive-table">
+                <thead>
+                    <tr>
+                        <th>Fahrt</th>
+                        <th>CSV Details</th>
+                        <th>Anhänge</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var trip in tripRecords)
+                    {
+                        <tr style="cursor:pointer;" onclick="showEditTripModal(@trip.Id)">
+                            <td data-label="Fahrt">@trip.Description</td>
+                            <td data-label="CSV Details" style="white-space:pre-line;">@trip.NoteText</td>
+                            <td data-label="Anhänge">@await Html.PartialAsync("_AttachmentColumn", trip.Files ?? new List<UploadedFiles>())</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 <div class="modal fade" data-bs-focus="false" id="tripModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg"><div class="modal-content" id="tripModalContent"></div></div>
