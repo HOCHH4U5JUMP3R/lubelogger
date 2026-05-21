@@ -6,6 +6,47 @@
     var userConfig = config.GetUserConfig(User);
     var userLanguage = userConfig.UserLanguage;
     var enableCsvImports = userConfig.EnableCsvImports;
+
+    string ParseDescriptionValue(string description, int index)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return "---";
+        }
+        var split = description.Split(':', 2);
+        var datePart = split[0].Trim();
+        if (index == 0)
+        {
+            return string.IsNullOrWhiteSpace(datePart) ? "---" : datePart;
+        }
+        if (split.Length < 2)
+        {
+            return "---";
+        }
+        var routeParts = split[1].Split("->", 2);
+        if (index == 1)
+        {
+            return routeParts.Length > 0 && !string.IsNullOrWhiteSpace(routeParts[0]) ? routeParts[0].Trim() : "---";
+        }
+
+        return routeParts.Length > 1 && !string.IsNullOrWhiteSpace(routeParts[1]) ? routeParts[1].Trim() : "---";
+    }
+
+    string ParseNoteValue(string noteText, string fieldPrefix)
+    {
+        if (string.IsNullOrWhiteSpace(noteText))
+        {
+            return "---";
+        }
+        var lines = noteText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var line = lines.FirstOrDefault(x => x.StartsWith(fieldPrefix, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return "---";
+        }
+        var value = line.Split(':', 2).LastOrDefault()?.Trim();
+        return string.IsNullOrWhiteSpace(value) ? "---" : value;
+    }
 }
 <div class="d-flex flex-column vehicleTabPane">
     <div class="row">
@@ -42,8 +83,15 @@
             <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
                 <thead class="sticky-top">
                     <tr class="d-flex">
-                        <th scope="col" class="col-2 flex-grow-1 text-truncate">@translator.Translate(userLanguage, "Description")</th>
-                        <th scope="col" class="col-8 flex-grow-1 text-truncate">@translator.Translate(userLanguage, "Notes")</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate">Date</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate">Start Location</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate">End Location</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Distance (km)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Duration (s)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Avg Speed (km/h)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Speed (km/h)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Altitude (m)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Elevation Gain (m)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,8 +100,15 @@
                         @foreach (var trip in Model)
                         {
                             <tr class="d-flex user-select-none" style="cursor:pointer;" onclick="showEditTripModal(@trip.Id)">
-                                <td class="col-2 flex-grow-1 text-truncate" data-label="@translator.Translate(userLanguage, "Description")">@(string.IsNullOrWhiteSpace(trip.Description) ? "---" : trip.Description)</td>
-                                <td class="col-8 flex-grow-1 text-truncate" data-label="@translator.Translate(userLanguage, "Notes")">@(string.IsNullOrWhiteSpace(trip.NoteText) ? "---" : trip.NoteText)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="Date">@ParseDescriptionValue(trip.Description, 0)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="Start Location">@ParseDescriptionValue(trip.Description, 1)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="End Location">@ParseDescriptionValue(trip.Description, 2)</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Distance (km)">@ParseNoteValue(trip.NoteText, "Distance (km)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Duration (s)">@ParseNoteValue(trip.NoteText, "Duration (s)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Avg Speed (km/h)">@ParseNoteValue(trip.NoteText, "Avg Speed (km/h)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Speed (km/h)">@ParseNoteValue(trip.NoteText, "Max Speed (km/h)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Altitude (m)">@ParseNoteValue(trip.NoteText, "Max Altitude (m)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Elevation Gain (m)">@ParseNoteValue(trip.NoteText, "Elevation Gain (m)")</td>
                             </tr>
                         }
                     }
