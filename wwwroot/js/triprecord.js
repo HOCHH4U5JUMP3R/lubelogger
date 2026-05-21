@@ -27,7 +27,7 @@ function saveTrip(vehicleId, id) {
     const maxAltitude = ($('#tripMaxAltitude').val() || '').trim();
     const elevationGain = ($('#tripElevationGain').val() || '').trim();
 
-    const description = `${date}: ${start} -> ${end}`;
+    const description = `${date} | ${start} -> ${end}`;
     const noteText = `Distance (km): ${distance}\nDuration (s): ${duration}\nAvg Speed (km/h): ${avgSpeed}\nMax Speed (km/h): ${maxSpeed}\nMax Altitude (m): ${maxAltitude}\nElevation Gain (m): ${elevationGain}`;
     const payload = { id: id, vehicleId: vehicleId, description: description, noteText: noteText, files: uploadedFiles, tags: ['trip'] };
     $.post('/Vehicle/SaveTripToVehicleId', { note: payload }, function (r) {

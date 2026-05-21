@@ -14,17 +14,35 @@
         {
             return string.Empty;
         }
-        var split = description.Split(':', 2);
-        var datePart = split[0].Trim();
+        var separatorIndex = description.IndexOf(" | ", StringComparison.Ordinal);
+        string datePart;
+        string routePart;
+        if (separatorIndex >= 0)
+        {
+            datePart = description[..separatorIndex].Trim();
+            routePart = description[(separatorIndex + 3)..].Trim();
+        }
+        else
+        {
+            var routeSeparator = description.IndexOf(" -> ", StringComparison.Ordinal);
+            if (routeSeparator < 0)
+            {
+                return index == 0 ? description.Trim() : string.Empty;
+            }
+            var splitPoint = description.LastIndexOf(": ", routeSeparator, StringComparison.Ordinal);
+            if (splitPoint < 0)
+            {
+                return index == 0 ? description.Trim() : string.Empty;
+            }
+            datePart = description[..splitPoint].Trim();
+            routePart = description[(splitPoint + 2)..].Trim();
+        }
+
         if (index == 0)
         {
             return datePart;
         }
-        if (split.Length < 2)
-        {
-            return string.Empty;
-        }
-        var routeParts = split[1].Split("->", 2);
+        var routeParts = routePart.Split("->", 2);
         if (index == 1)
         {
             return routeParts.Length > 0 ? routeParts[0].Trim() : string.Empty;
@@ -93,8 +111,8 @@
     </div>
     <label class="form-label mt-2">GPX/Dateien</label>
     @await Html.PartialAsync("_UploadedFiles", trip.Files ?? new List<UploadedFiles>())
-    <input type="file" multiple class="form-control" onchange="uploadVehicleFilesAsync(this)">
-    <div id="filesToUpload"></div>
+    @await Html.PartialAsync("_FileUploader", (trip.Files ?? new List<UploadedFiles>()).Any())
+    <div id="filesPendingUpload"></div>
 </div>
 <div class="modal-footer">
     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@translator.Translate(userLanguage, "Cancel")</button>
