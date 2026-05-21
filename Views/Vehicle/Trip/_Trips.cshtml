@@ -67,6 +67,29 @@
         return string.IsNullOrWhiteSpace(value) ? "---" : value;
     }
 
+    DateTime? ParseTripDate(string description)
+    {
+        var raw = ParseDescriptionValue(description, 0);
+        if (string.IsNullOrWhiteSpace(raw) || raw == "---")
+        {
+            return null;
+        }
+
+        var formats = new[] { "yyyy-MM-dd HH:mm", "yyyy-MM-dd HH:mm:ss", "yyyy-MM-ddTHH:mm:ss", "yyyy-MM-ddTHH:mm" };
+        if (DateTime.TryParseExact(raw, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedExact))
+        {
+            return parsedExact;
+        }
+
+        return DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed) ? parsed : null;
+    }
+
+    string FormatTripDateGerman(string description)
+    {
+        var parsed = ParseTripDate(description);
+        return parsed.HasValue ? parsed.Value.ToString("dd.MM.yyyy HH:mm") : ParseDescriptionValue(description, 0);
+    }
+
     double ParseNumericTripValue(string noteText, string fieldPrefix)
     {
         var raw = ParseNoteValue(noteText, fieldPrefix);
@@ -79,6 +102,7 @@
         return double.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
     }
 
+    var sortedTrips = Model.OrderByDescending(x => ParseTripDate(x.Description) ?? DateTime.MinValue).ThenByDescending(x => x.Id).ToList();
     var totalDistanceKm = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Distance (km)"));
     var totalDurationSeconds = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Duration (s)"));
 }
@@ -136,15 +160,16 @@
                         <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Speed (km/h)</th>
                         <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Altitude (m)</th>
                         <th scope="col" class="col-1 flex-grow-1 text-truncate">Elevation Gain (m)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate">GPX</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @if (Model.Any())
+                    @if (sortedTrips.Any())
                     {
-                        @foreach (var trip in Model)
+                        @foreach (var trip in sortedTrips)
                         {
                             <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@trip.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditTripModal,@trip.Id)">
-                                <td class="col-2 flex-grow-1 text-truncate" data-label="Date">@ParseDescriptionValue(trip.Description, 0)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="Date">@FormatTripDateGerman(trip.Description)</td>
                                 <td class="col-2 flex-grow-1 text-truncate" data-label="Start Location">@ParseDescriptionValue(trip.Description, 1)</td>
                                 <td class="col-2 flex-grow-1 text-truncate" data-label="End Location">@ParseDescriptionValue(trip.Description, 2)</td>
                                 <td class="col-1 flex-grow-1 text-truncate" data-label="Distance (km)">@ParseNoteValue(trip.NoteText, "Distance (km)")</td>
@@ -153,6 +178,19 @@
                                 <td class="col-1 flex-grow-1 text-truncate" data-label="Max Speed (km/h)">@ParseNoteValue(trip.NoteText, "Max Speed (km/h)")</td>
                                 <td class="col-1 flex-grow-1 text-truncate" data-label="Max Altitude (m)">@ParseNoteValue(trip.NoteText, "Max Altitude (m)")</td>
                                 <td class="col-1 flex-grow-1 text-truncate" data-label="Elevation Gain (m)">@ParseNoteValue(trip.NoteText, "Elevation Gain (m)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="GPX">
+                                    @{
+                                        var gpxFile = (trip.Files ?? new List<UploadedFiles>()).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Name) && x.Name.EndsWith(".gpx", StringComparison.OrdinalIgnoreCase));
+                                    }
+                                    @if (gpxFile != null)
+                                    {
+                                        <a href="#" onclick="openAttachmentPreview('@gpxFile.Name', '@gpxFile.Location'); return false;"><i class="bi bi-map me-1"></i>@gpxFile.Name</a>
+                                    }
+                                    else
+                                    {
+                                        @:---
+                                    }
+                                </td>
                             </tr>
                         }
                     }
