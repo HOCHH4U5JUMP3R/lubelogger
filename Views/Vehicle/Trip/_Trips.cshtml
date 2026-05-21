@@ -36,7 +36,7 @@
                         <tr style="cursor:pointer;" onclick="showEditTripModal(@trip.Id)">
                             <td data-label="Fahrt">@trip.Description</td>
                             <td data-label="CSV Details" style="white-space:pre-line;">@trip.NoteText</td>
-                            <td data-label="Anhänge">@await Html.PartialAsync("_AttachmentColumn", trip.Files)</td>
+                            <td data-label="Anhänge">@await Html.PartialAsync("_AttachmentColumn", trip.Files ?? new List<UploadedFiles>())</td>
                         </tr>
                     }
                 </tbody>
