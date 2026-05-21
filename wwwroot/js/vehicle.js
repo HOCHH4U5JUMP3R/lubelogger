@@ -10,6 +10,9 @@
             case "notes-tab":
                 getVehicleNotes(vehicleId);
                 break;
+            case "trips-tab":
+                getVehicleTrips(vehicleId);
+                break;
             case "gas-tab":
                 getVehicleGasRecords(vehicleId);
                 break;
@@ -72,6 +75,9 @@
                 case "notes-tab":
                     $("#notes-tab-pane").html("");
                     break;
+                case "trips-tab":
+                    $("#trips-tab-pane").html("");
+                    break;
                 case "supply-tab":
                     $("#supply-tab-pane").html("");
                     break;
@@ -100,6 +106,19 @@
         loadDefaultTab();
     });
 });
+
+function getVehicleTrips(vehicleId) {
+    $.get(`/Vehicle/GetTripsByVehicleId?vehicleId=${vehicleId}`, function (data) {
+        if (data) {
+            $("#trips-tab-pane").html(data);
+            restoreScrollPosition();
+        } else {
+            $("#trips-tab-pane").html('<div class="alert alert-warning mt-2">Fahrten konnten nicht geladen werden.</div>');
+        }
+    }).fail(function (xhr) {
+        $("#trips-tab-pane").html(`<div class="alert alert-danger mt-2">Fehler beim Laden von Fahrten (${xhr.status}).</div>`);
+    });
+}
 
 function getVehicleNotes(vehicleId) {
     $.get(`/Vehicle/GetNotesByVehicleId?vehicleId=${vehicleId}`, function (data) {
