@@ -13,7 +13,7 @@ namespace CarCareTracker.Controllers
         public IActionResult GetTripsByVehicleId(int vehicleId)
         {
             var result = _noteDataAccess.GetNotesByVehicleId(vehicleId)
-                .Where(x => x.Tags.Contains("trip"))
+                .Where(x => (x.Tags ?? new List<string>()).Contains("trip"))
                 .OrderByDescending(x => x.Id)
                 .ToList();
             return PartialView("Trip/_Trips", result);

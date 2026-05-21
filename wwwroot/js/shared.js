@@ -2131,6 +2131,9 @@ function bindTabEvents(tab) {
             checkQueryParams('#noteModalContent', showAddNoteModal, 'add');
             setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleNotes, GetVehicleId().vehicleId);
             break;
+        case "trips-tab":
+            setupEventHub(`vehicleId_${GetVehicleId().vehicleId}`, getVehicleTrips, GetVehicleId().vehicleId);
+            break;
         case "gas-tab":
             checkQueryParams('#gasRecordModalContent', showEditGasRecordModal, 'id');
             checkQueryParams('#gasRecordModalContent', showAddGasRecordModal, 'add');
