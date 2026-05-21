@@ -49,6 +49,13 @@
                 <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
             </div>
         } 
+        else if (Model.Location.ToLower().EndsWith(".gpx"))
+        {
+            <div class="d-flex align-self-center flex-column">
+                <a href="@Model.Location" download="@StaticHelper.GetAttachmentOriginalName(Model.Location, Model.Name)" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
+                <a href="https://gpx.studio/?state=%7B%22urls%22:%5B%22@Uri.EscapeDataString(Model.Location)%22%5D%7D" target="_blank" onclick="noPropagation()" class="mt-2 btn btn-secondary"><span class="me-2">GPX auf Karte öffnen</span><span><i class="bi bi-map"></i></span></a>
+            </div>
+        }
         else if (StaticHelper.GetAttachmentIsImage(Model.Location))
         {
             <img src="@Model.Location" style="height:100%; max-width:100%; object-fit:scale-down; pointer-events:none;" />
