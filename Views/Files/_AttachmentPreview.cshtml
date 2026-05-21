@@ -1,4 +1,4 @@
-﻿@using CarCareTracker.Helper
+@using CarCareTracker.Helper
 @inject IConfigHelper config
 @inject ITranslationHelper translator
 @model UploadedFiles
@@ -19,7 +19,8 @@
         <a href="@Model.Location" target="_blank">
             <span class="link-body-emphasis"><i class="bi bi-box-arrow-up-right"></i></span>
         </a>
-    } else
+    }
+    else
     {
         <a href="@Model.Location" download="@StaticHelper.GetAttachmentOriginalName(Model.Location, Model.Name)">
             <span class="link-body-emphasis"><i class="bi bi-download"></i></span>
@@ -28,7 +29,8 @@
     @if (StaticHelper.GetAttachmentIsInTemp(Model.Location))
     {
         <h5 class="modal-title" id="updateAccountModalLabel">@Model.Name</h5>
-    } else
+    }
+    else
     {
         <h5 class="modal-title" id="updateAccountModalLabel" data-link="@Model.Location" onclick="handleAttachmentCopyLink(this)" style="cursor:pointer;">@Model.Name</h5>
     }
@@ -48,18 +50,104 @@
                 <a href="@Model.Location" target="_blank" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Open Link in New Tab")</span><span><i class="bi bi-box-arrow-up-right"></i></span></a>
                 <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
             </div>
-        } 
+        }
         else if (Model.Location.ToLower().EndsWith(".gpx"))
         {
-            <div class="d-flex align-self-center flex-column">
-                <a href="@Model.Location" download="@StaticHelper.GetAttachmentOriginalName(Model.Location, Model.Name)" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
-                <a href="https://gpx.studio/?state=%7B%22urls%22:%5B%22@Uri.EscapeDataString(Model.Location)%22%5D%7D" target="_blank" onclick="noPropagation()" class="mt-2 btn btn-secondary"><span class="me-2">GPX auf Karte öffnen</span><span><i class="bi bi-map"></i></span></a>
+            <div class="d-flex flex-column w-100" onclick="noPropagation()">
+                <div class="d-flex gap-2 mb-2 flex-wrap">
+                    <a href="@Model.Location" download="@StaticHelper.GetAttachmentOriginalName(Model.Location, Model.Name)" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
+                </div>
+                <div class="row g-2">
+                    <div class="col-lg-8">
+                        <div class="border rounded p-2 bg-body-tertiary" style="min-height:420px;">
+                            <svg id="gpxLocalMap" viewBox="0 0 1000 600" style="width:100%; height:400px; border-radius:6px; background:#eef3f8;">
+                                <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d">GPX wird geladen…</text>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="border rounded p-2 h-100 bg-body-tertiary">
+                            <h6 class="mb-2">GPX Infos</h6>
+                            <ul class="list-unstyled small mb-0" id="gpxInfoList">
+                                <li>Punkte: -</li>
+                                <li>Start: -</li>
+                                <li>Ende: -</li>
+                                <li>Distanz (km): -</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <script>
+                (async function renderLocalGpxPreview() {
+                    const mapElem = document.getElementById('gpxLocalMap');
+                    const infoElem = document.getElementById('gpxInfoList');
+                    const setMsg = (m) => mapElem.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d">${m}</text>`;
+                    try {
+                        const res = await fetch('@Model.Location');
+                        const gpx = await res.text();
+                        const xml = new DOMParser().parseFromString(gpx, 'text/xml');
+                        const pts = [...xml.querySelectorAll('trkpt')].map(x => ({
+                            lat: parseFloat(x.getAttribute('lat')),
+                            lon: parseFloat(x.getAttribute('lon'))
+                        })).filter(x => !Number.isNaN(x.lat) && !Number.isNaN(x.lon));
+
+                        if (pts.length < 2) {
+                            setMsg('Zu wenig GPX Punkte für Vorschau');
+                            return;
+                        }
+
+                        const minLat = Math.min(...pts.map(p => p.lat));
+                        const maxLat = Math.max(...pts.map(p => p.lat));
+                        const minLon = Math.min(...pts.map(p => p.lon));
+                        const maxLon = Math.max(...pts.map(p => p.lon));
+                        const pad = 20;
+                        const w = 1000, h = 600;
+                        const latSpan = Math.max(0.000001, maxLat - minLat);
+                        const lonSpan = Math.max(0.000001, maxLon - minLon);
+
+                        const toXY = (p) => {
+                            const x = pad + ((p.lon - minLon) / lonSpan) * (w - pad * 2);
+                            const y = h - (pad + ((p.lat - minLat) / latSpan) * (h - pad * 2));
+                            return `${x},${y}`;
+                        };
+
+                        const poly = pts.map(toXY).join(' ');
+                        mapElem.innerHTML = `
+                            <rect x="0" y="0" width="1000" height="600" fill="#eef3f8"></rect>
+                            <polyline points="${poly}" fill="none" stroke="#0d6efd" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"></polyline>
+                            <circle cx="${toXY(pts[0]).split(',')[0]}" cy="${toXY(pts[0]).split(',')[1]}" r="8" fill="#198754"></circle>
+                            <circle cx="${toXY(pts[pts.length - 1]).split(',')[0]}" cy="${toXY(pts[pts.length - 1]).split(',')[1]}" r="8" fill="#dc3545"></circle>
+                        `;
+
+                        const deg2rad = d => d * Math.PI / 180;
+                        const segmentKm = (a,b) => {
+                            const R = 6371;
+                            const dLat = deg2rad(b.lat - a.lat);
+                            const dLon = deg2rad(b.lon - a.lon);
+                            const la1 = deg2rad(a.lat), la2 = deg2rad(b.lat);
+                            const h = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLon/2)**2;
+                            return 2*R*Math.asin(Math.sqrt(h));
+                        };
+                        let dist = 0;
+                        for (let i = 1; i < pts.length; i++) dist += segmentKm(pts[i-1], pts[i]);
+
+                        infoElem.innerHTML = `
+                            <li>Punkte: ${pts.length}</li>
+                            <li>Start: ${pts[0].lat.toFixed(5)}, ${pts[0].lon.toFixed(5)}</li>
+                            <li>Ende: ${pts[pts.length - 1].lat.toFixed(5)}, ${pts[pts.length - 1].lon.toFixed(5)}</li>
+                            <li>Distanz (km): ${dist.toFixed(2)}</li>
+                        `;
+                    } catch (e) {
+                        setMsg('GPX Vorschau konnte nicht geladen werden');
+                    }
+                })();
+            </script>
         }
         else if (StaticHelper.GetAttachmentIsImage(Model.Location))
         {
             <img src="@Model.Location" style="height:100%; max-width:100%; object-fit:scale-down; pointer-events:none;" />
-        } 
+        }
         else
         {
             <div class="d-flex align-self-center flex-column">
