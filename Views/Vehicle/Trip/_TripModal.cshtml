@@ -7,17 +7,91 @@
     var userLanguage = userConfig.UserLanguage;
     var trip = Model ?? new Note();
     var isNew = trip.Id == 0;
+
+    string ParseDescriptionValue(string description, int index)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return string.Empty;
+        }
+        var split = description.Split(':', 2);
+        var datePart = split[0].Trim();
+        if (index == 0)
+        {
+            return datePart;
+        }
+        if (split.Length < 2)
+        {
+            return string.Empty;
+        }
+        var routeParts = split[1].Split("->", 2);
+        if (index == 1)
+        {
+            return routeParts.Length > 0 ? routeParts[0].Trim() : string.Empty;
+        }
+
+        return routeParts.Length > 1 ? routeParts[1].Trim() : string.Empty;
+    }
+
+    string ParseNoteValue(string noteText, string fieldPrefix)
+    {
+        if (string.IsNullOrWhiteSpace(noteText))
+        {
+            return string.Empty;
+        }
+        var lines = noteText.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        var line = lines.FirstOrDefault(x => x.StartsWith(fieldPrefix, StringComparison.OrdinalIgnoreCase));
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return string.Empty;
+        }
+        return line.Split(':', 2).LastOrDefault()?.Trim() ?? string.Empty;
+    }
 }
 <div class="modal-header">
     <h5 class="modal-title">@(isNew ? translator.Translate(userLanguage, "Add Trip") : translator.Translate(userLanguage, "Edit Trip"))</h5>
     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 </div>
 <div class="modal-body" onkeydown="handleEnter(this)">
-    <label for="tripDesc">@translator.Translate(userLanguage, "Description")</label>
-    <input id="tripDesc" class="form-control mb-2" value="@trip.Description" placeholder="@translator.Translate(userLanguage, "Description")"/>
-    <label for="tripText">@translator.Translate(userLanguage, "Details")</label>
-    <textarea id="tripText" class="form-control mb-2" rows="6" placeholder="@translator.Translate(userLanguage, "Details")">@trip.NoteText</textarea>
-    <label class="form-label">GPX/Dateien</label>
+    <div class="row g-2">
+        <div class="col-md-4">
+            <label for="tripDate">Date</label>
+            <input id="tripDate" class="form-control" value="@ParseDescriptionValue(trip.Description, 0)" placeholder="2026-05-21 16:17" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripStart">Start Location</label>
+            <input id="tripStart" class="form-control" value="@ParseDescriptionValue(trip.Description, 1)" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripEnd">End Location</label>
+            <input id="tripEnd" class="form-control" value="@ParseDescriptionValue(trip.Description, 2)" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripDistance">Distance (km)</label>
+            <input id="tripDistance" class="form-control" value="@ParseNoteValue(trip.NoteText, "Distance (km)")" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripDuration">Duration (s)</label>
+            <input id="tripDuration" class="form-control" value="@ParseNoteValue(trip.NoteText, "Duration (s)")" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripAvgSpeed">Avg Speed (km/h)</label>
+            <input id="tripAvgSpeed" class="form-control" value="@ParseNoteValue(trip.NoteText, "Avg Speed (km/h)")" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripMaxSpeed">Max Speed (km/h)</label>
+            <input id="tripMaxSpeed" class="form-control" value="@ParseNoteValue(trip.NoteText, "Max Speed (km/h)")" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripMaxAltitude">Max Altitude (m)</label>
+            <input id="tripMaxAltitude" class="form-control" value="@ParseNoteValue(trip.NoteText, "Max Altitude (m)")" />
+        </div>
+        <div class="col-md-4">
+            <label for="tripElevationGain">Elevation Gain (m)</label>
+            <input id="tripElevationGain" class="form-control" value="@ParseNoteValue(trip.NoteText, "Elevation Gain (m)")" />
+        </div>
+    </div>
+    <label class="form-label mt-2">GPX/Dateien</label>
     @await Html.PartialAsync("_UploadedFiles", trip.Files ?? new List<UploadedFiles>())
     <input type="file" multiple class="form-control" onchange="uploadVehicleFilesAsync(this)">
     <div id="filesToUpload"></div>
