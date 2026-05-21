@@ -1,0 +1,27 @@
+@using CarCareTracker.Helper
+@inject ITranslationHelper translator
+@inject IConfigHelper config
+@model List<int>
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+}
+<div class="modal-header">
+    <h5 class="modal-title">@translator.Translate(userLanguage, "Edit Multiple Records") (Trips)</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+    <p class="text-muted mb-2">@translator.Translate(userLanguage, "Notes(optional)")</p>
+    <textarea id="tripBulkNoteText" class="form-control" rows="6"></textarea>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@translator.Translate(userLanguage, "Cancel")</button>
+    <button type="button" class="btn btn-primary" onclick="saveMultipleNoteRecordsToVehicle('trip')">@translator.Translate(userLanguage, "Save")</button>
+</div>
+<script>
+    var recordsToEdit = [];
+    @foreach (var recordId in (Model ?? new List<int>()))
+    {
+        @:recordsToEdit.push(@recordId);
+    }
+</script>

@@ -1,0 +1,28 @@
+@using CarCareTracker.Helper
+@inject ITranslationHelper translator
+@inject IConfigHelper config
+@model Note
+@{
+    var userConfig = config.GetUserConfig(User);
+    var userLanguage = userConfig.UserLanguage;
+    var trip = Model ?? new Note();
+    var isNew = trip.Id == 0;
+}
+<div class="modal-header">
+    <h5 class="modal-title">@(isNew ? translator.Translate(userLanguage, "Add Trip") : translator.Translate(userLanguage, "Edit Trip"))</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body" onkeydown="handleEnter(this)">
+    <label for="tripDesc">@translator.Translate(userLanguage, "Description")</label>
+    <input id="tripDesc" class="form-control mb-2" value="@trip.Description" placeholder="@translator.Translate(userLanguage, "Description")"/>
+    <label for="tripText">@translator.Translate(userLanguage, "Details")</label>
+    <textarea id="tripText" class="form-control mb-2" rows="6" placeholder="@translator.Translate(userLanguage, "Details")">@trip.NoteText</textarea>
+    <label class="form-label">GPX/Dateien</label>
+    @await Html.PartialAsync("_UploadedFiles", trip.Files ?? new List<UploadedFiles>())
+    <input type="file" multiple class="form-control" onchange="uploadVehicleFilesAsync(this)">
+    <div id="filesToUpload"></div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@translator.Translate(userLanguage, "Cancel")</button>
+    <button class="btn btn-primary" onclick="saveTrip(@trip.VehicleId,@trip.Id)">@(isNew ? translator.Translate(userLanguage, "Add") : translator.Translate(userLanguage, "Save"))</button>
+</div>
