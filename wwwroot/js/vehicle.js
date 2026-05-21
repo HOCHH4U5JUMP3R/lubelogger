@@ -108,7 +108,7 @@
 });
 
 function getVehicleTrips(vehicleId) {
-    $.get(`/Vehicle/GetNotesByVehicleId?vehicleId=${vehicleId}`, function (data) {
+    $.get(`/Vehicle/GetTripsByVehicleId?vehicleId=${vehicleId}`, function (data) {
         if (data) {
             $("#trips-tab-pane").html(data);
             restoreScrollPosition();
