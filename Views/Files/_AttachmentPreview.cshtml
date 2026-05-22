@@ -86,14 +86,25 @@
                     const mapElem = document.getElementById('gpxLocalMap');
                     const infoElem = document.getElementById('gpxInfoList');
                     const gpxUrlRaw = '@Html.Raw(JavaScriptEncoder.Default.Encode(WebUtility.HtmlDecode(Model.Location ?? string.Empty)))';
-                    const gpxUrl = (() => {
-                        if (!gpxUrlRaw) return '';
-                        if (gpxUrlRaw.startsWith('http://') || gpxUrlRaw.startsWith('https://')) {
-                            return gpxUrlRaw;
+                    const buildCandidateUrls = () => {
+                        const urls = [];
+                        const normalizedRaw = (gpxUrlRaw || '').trim();
+                        if (!normalizedRaw) return urls;
+                        const pushUnique = (u) => {
+                            if (u && !urls.includes(u)) urls.push(u);
+                        };
+                        pushUnique(normalizedRaw);
+                        if (normalizedRaw.startsWith('/')) {
+                            pushUnique(`${window.location.origin}${normalizedRaw}`);
+                        } else if (!normalizedRaw.startsWith('http://') && !normalizedRaw.startsWith('https://')) {
+                            pushUnique(`${window.location.origin}/${normalizedRaw}`);
+                            pushUnique(new URL(normalizedRaw, window.location.href).toString());
                         }
-                        const normalizedPath = gpxUrlRaw.startsWith('/') ? gpxUrlRaw : `/${gpxUrlRaw}`;
-                        return `${window.location.origin}${normalizedPath}`;
-                    })();
+                        try {
+                            pushUnique(decodeURIComponent(normalizedRaw));
+                        } catch { }
+                        return urls;
+                    };
                     const setMsg = (m) => mapElem.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d">${m}</text>`;
                     const setInfoError = (m) => {
                         infoElem.innerHTML = `<li class="text-danger">${m}</li>`;
@@ -110,9 +121,28 @@
                         return null;
                     };
                     try {
-                        const res = await fetch(gpxUrl, { credentials: 'same-origin' });
-                        if (!res.ok) {
-                            throw new Error(`HTTP ${res.status}`);
+                        const candidateUrls = buildCandidateUrls();
+                        if (!candidateUrls.length) {
+                            throw new Error('Leerer GPX Pfad');
+                        }
+                        let res = null;
+                        let loadedFrom = null;
+                        let lastError = null;
+                        for (const candidateUrl of candidateUrls) {
+                            try {
+                                const response = await fetch(candidateUrl, { credentials: 'same-origin' });
+                                if (response.ok) {
+                                    res = response;
+                                    loadedFrom = candidateUrl;
+                                    break;
+                                }
+                                lastError = `HTTP ${response.status} (${candidateUrl})`;
+                            } catch (fetchErr) {
+                                lastError = `${fetchErr && fetchErr.message ? fetchErr.message : 'Fetch Fehler'} (${candidateUrl})`;
+                            }
+                        }
+                        if (!res) {
+                            throw new Error(lastError || 'GPX konnte nicht geladen werden');
                         }
                         const gpx = await res.text();
                         const xml = new DOMParser().parseFromString(gpx, 'text/xml');
@@ -195,6 +225,7 @@
 
                         infoElem.innerHTML = `
                             <li>Punkte: ${pts.length}</li>
+                            <li class="text-muted">Quelle: ${loadedFrom}</li>
                             <li>Start: ${pts[0].lat.toFixed(5)}, ${pts[0].lon.toFixed(5)}</li>
                             <li>Ende: ${pts[pts.length - 1].lat.toFixed(5)}, ${pts[pts.length - 1].lon.toFixed(5)}</li>
                             <li>Strecke (km): ${dist.toFixed(2)}</li>
