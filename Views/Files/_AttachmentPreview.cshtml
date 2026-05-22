@@ -96,6 +96,11 @@
                         pushUnique(normalizedRaw);
                         if (normalizedRaw.startsWith('/')) {
                             pushUnique(`${window.location.origin}${normalizedRaw}`);
+                            if (normalizedRaw.startsWith('/documents/')) {
+                                const pascalDocumentsPath = `/Documents/${normalizedRaw.substring('/documents/'.length)}`;
+                                pushUnique(pascalDocumentsPath);
+                                pushUnique(`${window.location.origin}${pascalDocumentsPath}`);
+                            }
                         } else if (!normalizedRaw.startsWith('http://') && !normalizedRaw.startsWith('https://')) {
                             pushUnique(`${window.location.origin}/${normalizedRaw}`);
                             pushUnique(new URL(normalizedRaw, window.location.href).toString());
