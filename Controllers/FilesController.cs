@@ -50,11 +50,23 @@ namespace CarCareTracker.Controllers
         public IActionResult HandleMultipleFileUpload(List<IFormFile> file)
         {
             List<UploadedFiles> uploadedFiles = new List<UploadedFiles>();
-            foreach (IFormFile fileToUpload in file)
+            foreach (IFormFile fileToUpload in file ?? new List<IFormFile>())
             {
+                if (fileToUpload == null || fileToUpload.Length == 0)
+                {
+                    _logger.LogWarning("Skipped empty upload payload for file {FileName}", fileToUpload?.FileName ?? "(unknown)");
+                    continue;
+                }
+
                 var fileName = UploadFile(fileToUpload);
-                uploadedFiles.Add(new UploadedFiles { Name = fileToUpload.FileName, Location = fileName, IsPending = true});
+                uploadedFiles.Add(new UploadedFiles { Name = fileToUpload.FileName, Location = fileName, IsPending = true });
             }
+
+            if (uploadedFiles.Count == 0)
+            {
+                return BadRequest(OperationResponse.Failed("No valid files were uploaded."));
+            }
+
             return Json(uploadedFiles);
         }
         [Authorize(Roles = nameof(UserData.IsRootUser))]
