@@ -94,7 +94,8 @@
                         if (xml.querySelector('parsererror')) {
                             throw new Error('GPX parse error');
                         }
-                        const points = [...xml.getElementsByTagName('*')].filter((node) => {
+                        const allNodes = Array.from(xml.getElementsByTagName('*'));
+                        const points = allNodes.filter((node) => {
                             const tagName = (node.localName || node.tagName || '').toLowerCase();
                             return tagName === 'trkpt' || tagName === 'rtept' || tagName === 'wpt';
                         });
