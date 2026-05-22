@@ -70,9 +70,10 @@
                             <h6 class="mb-2">GPX Infos</h6>
                             <ul class="list-unstyled small mb-0" id="gpxInfoList">
                                 <li>Punkte: -</li>
-                                <li>Start: -</li>
-                                <li>Ende: -</li>
-                                <li>Distanz (km): -</li>
+                                <li>Strecke (km): -</li>
+                                <li>Höhenunterschied (m): -</li>
+                                <li>Geschwindigkeit (km/h): -</li>
+                                <li>Dauer (hh:mm:ss): -</li>
                             </ul>
                         </div>
                     </div>
@@ -84,12 +85,24 @@
                     const infoElem = document.getElementById('gpxInfoList');
                     const setMsg = (m) => mapElem.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d">${m}</text>`;
                     try {
-                        const res = await fetch('@Model.Location');
+                        const res = await fetch('@Model.Location', { credentials: 'same-origin' });
+                        if (!res.ok) {
+                            throw new Error(`HTTP ${res.status}`);
+                        }
                         const gpx = await res.text();
                         const xml = new DOMParser().parseFromString(gpx, 'text/xml');
-                        const pts = [...xml.querySelectorAll('trkpt')].map(x => ({
+                        if (xml.querySelector('parsererror')) {
+                            throw new Error('GPX parse error');
+                        }
+                        const points = [...xml.getElementsByTagName('*')].filter((node) => {
+                            const tagName = (node.localName || node.tagName || '').toLowerCase();
+                            return tagName === 'trkpt' || tagName === 'rtept' || tagName === 'wpt';
+                        });
+                        const pts = points.map(x => ({
                             lat: parseFloat(x.getAttribute('lat')),
-                            lon: parseFloat(x.getAttribute('lon'))
+                            lon: parseFloat(x.getAttribute('lon')),
+                            ele: parseFloat(x.querySelector('ele')?.textContent ?? 'NaN'),
+                            time: x.querySelector('time')?.textContent ?? null
                         })).filter(x => !Number.isNaN(x.lat) && !Number.isNaN(x.lon));
 
                         if (pts.length < 2) {
@@ -132,11 +145,34 @@
                         let dist = 0;
                         for (let i = 1; i < pts.length; i++) dist += segmentKm(pts[i-1], pts[i]);
 
+                        const elevations = pts.map(p => p.ele).filter(e => !Number.isNaN(e));
+                        const minEle = elevations.length ? Math.min(...elevations) : null;
+                        const maxEle = elevations.length ? Math.max(...elevations) : null;
+                        const elevationDiff = (minEle !== null && maxEle !== null) ? (maxEle - minEle) : null;
+
+                        const timePoints = pts.map(p => p.time ? new Date(p.time) : null).filter(t => t && !Number.isNaN(t.getTime()));
+                        let durationSeconds = null;
+                        if (timePoints.length >= 2) {
+                            durationSeconds = Math.max(0, Math.round((timePoints[timePoints.length - 1] - timePoints[0]) / 1000));
+                        }
+
+                        const avgSpeed = durationSeconds && durationSeconds > 0 ? (dist / (durationSeconds / 3600)) : null;
+                        const formatDuration = (seconds) => {
+                            if (seconds === null) return '-';
+                            const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+                            const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+                            const s = String(seconds % 60).padStart(2, '0');
+                            return `${h}:${m}:${s}`;
+                        };
+
                         infoElem.innerHTML = `
                             <li>Punkte: ${pts.length}</li>
                             <li>Start: ${pts[0].lat.toFixed(5)}, ${pts[0].lon.toFixed(5)}</li>
                             <li>Ende: ${pts[pts.length - 1].lat.toFixed(5)}, ${pts[pts.length - 1].lon.toFixed(5)}</li>
-                            <li>Distanz (km): ${dist.toFixed(2)}</li>
+                            <li>Strecke (km): ${dist.toFixed(2)}</li>
+                            <li>Höhenunterschied (m): ${elevationDiff !== null ? elevationDiff.toFixed(1) : '-'}</li>
+                            <li>Geschwindigkeit (km/h): ${avgSpeed !== null ? avgSpeed.toFixed(2) : '-'}</li>
+                            <li>Dauer (hh:mm:ss): ${formatDuration(durationSeconds)}</li>
                         `;
                     } catch (e) {
                         setMsg('GPX Vorschau konnte nicht geladen werden');
