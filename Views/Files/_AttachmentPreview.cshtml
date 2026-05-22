@@ -94,19 +94,41 @@
                             if (u && !urls.includes(u)) urls.push(u);
                         };
                         pushUnique(normalizedRaw);
+                        const addDocumentCaseVariants = (pathValue) => {
+                            const lowerPath = (pathValue || '').toLowerCase();
+                            if (lowerPath.startsWith('/documents/')) {
+                                const normalizedDocsPath = `/documents/${pathValue.substring('/documents/'.length)}`;
+                                const pascalDocsPath = `/Documents/${pathValue.substring('/documents/'.length)}`;
+                                pushUnique(normalizedDocsPath);
+                                pushUnique(pascalDocsPath);
+                                pushUnique(`${window.location.origin}${normalizedDocsPath}`);
+                                pushUnique(`${window.location.origin}${pascalDocsPath}`);
+                            }
+                        };
+
                         if (normalizedRaw.startsWith('/')) {
                             pushUnique(`${window.location.origin}${normalizedRaw}`);
-                            if (normalizedRaw.startsWith('/documents/')) {
-                                const pascalDocumentsPath = `/Documents/${normalizedRaw.substring('/documents/'.length)}`;
-                                pushUnique(pascalDocumentsPath);
-                                pushUnique(`${window.location.origin}${pascalDocumentsPath}`);
+                            addDocumentCaseVariants(normalizedRaw);
+                        } else {
+                            try {
+                                const parsedUrl = new URL(normalizedRaw);
+                                if (parsedUrl.pathname) {
+                                    pushUnique(parsedUrl.pathname);
+                                    pushUnique(`${window.location.origin}${parsedUrl.pathname}`);
+                                    addDocumentCaseVariants(parsedUrl.pathname);
+                                }
+                            } catch {
+                                pushUnique(`${window.location.origin}/${normalizedRaw}`);
+                                pushUnique(new URL(normalizedRaw, window.location.href).toString());
                             }
-                        } else if (!normalizedRaw.startsWith('http://') && !normalizedRaw.startsWith('https://')) {
-                            pushUnique(`${window.location.origin}/${normalizedRaw}`);
-                            pushUnique(new URL(normalizedRaw, window.location.href).toString());
                         }
+
                         try {
-                            pushUnique(decodeURIComponent(normalizedRaw));
+                            const decodedRaw = decodeURIComponent(normalizedRaw);
+                            pushUnique(decodedRaw);
+                            if (decodedRaw.startsWith('/')) {
+                                addDocumentCaseVariants(decodedRaw);
+                            }
                         } catch { }
                         return urls;
                     };
