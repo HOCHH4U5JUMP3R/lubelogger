@@ -7,6 +7,7 @@
     var userConfig = config.GetUserConfig(User);
     var userLanguage = userConfig.UserLanguage;
     var enableCsvImports = userConfig.EnableCsvImports;
+    var userColumnPreferences = userConfig.UserColumnPreferences.Where(x => x.Tab == ImportMode.NoteRecord);
 
     string ParseDescriptionValue(string description, int index)
     {
@@ -105,6 +106,16 @@
     var sortedTrips = Model.OrderByDescending(x => ParseTripDate(x.Description) ?? DateTime.MinValue).ThenByDescending(x => x.Id).ToList();
     var totalDistanceKm = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Distance (km)"));
     var totalDurationSeconds = Model.Sum(x => ParseNumericTripValue(x.NoteText, "Duration (s)"));
+
+    string FormatDurationHhMmSs(string noteText)
+    {
+        var seconds = ParseNumericTripValue(noteText, "Duration (s)");
+        if (seconds <= 0)
+        {
+            return "---";
+        }
+        return TimeSpan.FromSeconds(seconds).ToString(@"hh\:mm\:ss");
+    }
 }
 <div class="d-flex flex-column vehicleTabPane">
     <div class="row">
@@ -140,6 +151,20 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" onclick="printTab()">@translator.Translate(userLanguage, "Print")</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="searchTableRows()">@translator.Translate(userLanguage, "Search")</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><span class="dropdown-item-text">@translator.Translate(userLanguage, "Columns")</span></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='date' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripDate" checked><label class="form-check-label stretched-link" for="chkCol_TripDate">Date</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='startlocation' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripStart" checked><label class="form-check-label stretched-link" for="chkCol_TripStart">Start Location</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='endlocation' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripEnd" checked><label class="form-check-label stretched-link" for="chkCol_TripEnd">End Location</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='distance' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripDistance" checked><label class="form-check-label stretched-link" for="chkCol_TripDistance">Distance (km)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='duration' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripDuration" checked><label class="form-check-label stretched-link" for="chkCol_TripDuration">Duration (s)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='avgspeed' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripAvgSpeed" checked><label class="form-check-label stretched-link" for="chkCol_TripAvgSpeed">Avg Speed (km/h)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='maxspeed' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripMaxSpeed" checked><label class="form-check-label stretched-link" for="chkCol_TripMaxSpeed">Max Speed (km/h)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='maxaltitude' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripMaxAltitude" checked><label class="form-check-label stretched-link" for="chkCol_TripMaxAltitude">Max Altitude (m)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='elevationgain' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripElevationGain" checked><label class="form-check-label stretched-link" for="chkCol_TripElevationGain">Elevation Gain (m)</label></div></li>
+                        <li class="dropdown-item" draggable="true" ondragstart="handleTableColumnDragStart(event)" ondragover="handleTableColumnDragOver(event)" ondragend="handleTableColumnDragEnd('NoteRecord')"><div class="list-group-item"><input class="form-check-input col-visible-toggle" data-column-toggle='gpx' onChange="showTableColumns(this, 'NoteRecord')" type="checkbox" id="chkCol_TripGpx" checked><label class="form-check-label stretched-link" for="chkCol_TripGpx">GPX</label></div></li>
                     </ul>
                 </div>
             </div>
@@ -151,16 +176,16 @@
             <table class="table table-hover @(userConfig.UseGridInMobile ? "" : "ll-responsive-table")">
                 <thead class="sticky-top">
                     <tr class="d-flex">
-                        <th scope="col" class="col-2 flex-grow-1 text-truncate">Date</th>
-                        <th scope="col" class="col-2 flex-grow-1 text-truncate">Start Location</th>
-                        <th scope="col" class="col-2 flex-grow-1 text-truncate">End Location</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Distance (km)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Duration (s)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Avg Speed (km/h)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Speed (km/h)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Max Altitude (m)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">Elevation Gain (m)</th>
-                        <th scope="col" class="col-1 flex-grow-1 text-truncate">GPX</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate" data-column="date">Date</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate" data-column="startlocation">Start Location</th>
+                        <th scope="col" class="col-2 flex-grow-1 text-truncate" data-column="endlocation">End Location</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="distance">Distance (km)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="duration">Duration (s)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="avgspeed">Avg Speed (km/h)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="maxspeed">Max Speed (km/h)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="maxaltitude">Max Altitude (m)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="elevationgain">Elevation Gain (m)</th>
+                        <th scope="col" class="col-1 flex-grow-1 text-truncate" data-column="gpx">GPX</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -169,16 +194,16 @@
                         @foreach (var trip in sortedTrips)
                         {
                             <tr class="d-flex user-select-none" style="cursor:pointer;" onmouseup="stopEvent()" ontouchstart="detectRowLongTouch(this)" ontouchend="detectRowTouchEndPremature(this)" data-rowId="@trip.Id" oncontextmenu="showTableContextMenu(this)" onmousemove="rangeMouseMove(this)" onclick="handleTableRowClick(this, showEditTripModal,@trip.Id)">
-                                <td class="col-2 flex-grow-1 text-truncate" data-label="Date">@FormatTripDateGerman(trip.Description)</td>
-                                <td class="col-2 flex-grow-1 text-truncate" data-label="Start Location">@ParseDescriptionValue(trip.Description, 1)</td>
-                                <td class="col-2 flex-grow-1 text-truncate" data-label="End Location">@ParseDescriptionValue(trip.Description, 2)</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Distance (km)">@ParseNoteValue(trip.NoteText, "Distance (km)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Duration (s)">@ParseNoteValue(trip.NoteText, "Duration (s)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Avg Speed (km/h)">@ParseNoteValue(trip.NoteText, "Avg Speed (km/h)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Speed (km/h)">@ParseNoteValue(trip.NoteText, "Max Speed (km/h)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Altitude (m)">@ParseNoteValue(trip.NoteText, "Max Altitude (m)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="Elevation Gain (m)">@ParseNoteValue(trip.NoteText, "Elevation Gain (m)")</td>
-                                <td class="col-1 flex-grow-1 text-truncate" data-label="GPX">
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="Date" data-column="date">@FormatTripDateGerman(trip.Description)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="Start Location" data-column="startlocation">@ParseDescriptionValue(trip.Description, 1)</td>
+                                <td class="col-2 flex-grow-1 text-truncate" data-label="End Location" data-column="endlocation">@ParseDescriptionValue(trip.Description, 2)</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Distance (km)" data-column="distance">@ParseNoteValue(trip.NoteText, "Distance (km)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Duration (s)" data-column="duration">@($"{ParseNoteValue(trip.NoteText, "Duration (s)")} ({FormatDurationHhMmSs(trip.NoteText)})")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Avg Speed (km/h)" data-column="avgspeed">@ParseNoteValue(trip.NoteText, "Avg Speed (km/h)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Speed (km/h)" data-column="maxspeed">@ParseNoteValue(trip.NoteText, "Max Speed (km/h)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Max Altitude (m)" data-column="maxaltitude">@ParseNoteValue(trip.NoteText, "Max Altitude (m)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="Elevation Gain (m)" data-column="elevationgain">@ParseNoteValue(trip.NoteText, "Elevation Gain (m)")</td>
+                                <td class="col-1 flex-grow-1 text-truncate" data-label="GPX" data-column="gpx">
                                     @{
                                         var gpxFile = (trip.Files ?? new List<UploadedFiles>()).FirstOrDefault(x => !string.IsNullOrWhiteSpace(x.Name) && x.Name.EndsWith(".gpx", StringComparison.OrdinalIgnoreCase));
                                     }
@@ -217,3 +242,4 @@
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item text-danger" href="#" onclick="deleteRecords(selectedRow, 'NoteRecord')"><div class="d-flex justify-content-between"><span class="me-5">@translator.Translate(userLanguage, "Delete")</span><i class="bi bi-trash"></i></div></a></li>
 </ul>
+<partial name="_UserColumnPreferences" model="userColumnPreferences" />
