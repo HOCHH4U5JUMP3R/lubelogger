@@ -626,10 +626,21 @@ function updateAggregateLabels() {
 
 function uploadVehicleFilesAsync(event) {
     let formData = new FormData();
-    var files = event.files;
+    var files = event.files || [];
+    var addedFileCount = 0;
     for (var x = 0; x < files.length; x++) {
-        formData.append("file", files[x]);
+        if (files[x] && files[x].size > 0) {
+            formData.append("file", files[x]);
+            addedFileCount++;
+        }
     }
+
+    if (addedFileCount === 0) {
+        $(event).val("");
+        errorToast("No valid file content was detected. Please re-select the file and try again.");
+        return;
+    }
+
     sloader.show();
     $.ajax({
         url: "/Files/HandleMultipleFileUpload",
