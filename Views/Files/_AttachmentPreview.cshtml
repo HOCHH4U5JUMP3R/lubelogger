@@ -70,9 +70,10 @@
                             <h6 class="mb-2">GPX Infos</h6>
                             <ul class="list-unstyled small mb-0" id="gpxInfoList">
                                 <li>Punkte: -</li>
-                                <li>Start: -</li>
-                                <li>Ende: -</li>
-                                <li>Distanz (km): -</li>
+                                <li>Strecke (km): -</li>
+                                <li>Höhenunterschied (m): -</li>
+                                <li>Geschwindigkeit (km/h): -</li>
+                                <li>Dauer (hh:mm:ss): -</li>
                             </ul>
                         </div>
                     </div>
@@ -84,10 +85,19 @@
                     const infoElem = document.getElementById('gpxInfoList');
                     const setMsg = (m) => mapElem.innerHTML = `<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d">${m}</text>`;
                     try {
-                        const res = await fetch('@Model.Location');
+                        const res = await fetch('@Model.Location', { credentials: 'same-origin' });
+                        if (!res.ok) {
+                            throw new Error(`HTTP ${res.status}`);
+                        }
                         const gpx = await res.text();
                         const xml = new DOMParser().parseFromString(gpx, 'text/xml');
-                        const points = [...xml.querySelectorAll('trkpt, rtept, wpt')];
+                        if (xml.querySelector('parsererror')) {
+                            throw new Error('GPX parse error');
+                        }
+                        const points = [...xml.getElementsByTagName('*')].filter((node) => {
+                            const tagName = (node.localName || node.tagName || '').toLowerCase();
+                            return tagName === 'trkpt' || tagName === 'rtept' || tagName === 'wpt';
+                        });
                         const pts = points.map(x => ({
                             lat: parseFloat(x.getAttribute('lat')),
                             lon: parseFloat(x.getAttribute('lon')),
