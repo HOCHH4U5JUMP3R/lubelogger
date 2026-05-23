@@ -9,9 +9,21 @@
     var userLanguage = userConfig.UserLanguage;
     var attachmentIsRecord = StaticHelper.GetAttachmentIsRecord(Model.Location, out ImportMode importMode, out int recordId);
     var normalizedLocation = Model.Location ?? string.Empty;
-    if (!string.IsNullOrWhiteSpace(normalizedLocation) && normalizedLocation.StartsWith("/Documents/", StringComparison.OrdinalIgnoreCase))
+    if (!string.IsNullOrWhiteSpace(normalizedLocation))
     {
-        normalizedLocation = "/documents/" + normalizedLocation.Substring("/Documents/".Length);
+        if (normalizedLocation.StartsWith("/documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedLocation = "/documents/" + normalizedLocation.Substring("/documents/".Length);
+        }
+        else if (Uri.TryCreate(normalizedLocation, UriKind.Absolute, out var parsedLocation) && parsedLocation.AbsolutePath.StartsWith("/documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            var normalizedPath = "/documents/" + parsedLocation.AbsolutePath.Substring("/documents/".Length);
+            var builder = new UriBuilder(parsedLocation)
+            {
+                Path = normalizedPath
+            };
+            normalizedLocation = builder.Uri.ToString();
+        }
     }
 }
 <div class="modal-header">
@@ -39,7 +51,7 @@
     }
     else
     {
-        <h5 class="modal-title" id="updateAccountModalLabel" data-link="@Model.Location" onclick="handleAttachmentCopyLink(this)" style="cursor:pointer;">@Model.Name</h5>
+        <h5 class="modal-title" id="updateAccountModalLabel" data-link="@normalizedLocation" onclick="handleAttachmentCopyLink(this)" style="cursor:pointer;">@Model.Name</h5>
     }
     <a style="cursor:pointer;" onclick="closeAttachmentPreview()"><span class="link-body-emphasis"><i class="bi bi-x-lg"></i></span></a>
 </div>
@@ -55,7 +67,7 @@
         {
             <div class="d-flex align-self-center flex-column">
                 <a href="@Model.Location" target="_blank" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Open Link in New Tab")</span><span><i class="bi bi-box-arrow-up-right"></i></span></a>
-                <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
+                <a data-link="@normalizedLocation" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
             </div>
         }
         else if (Model.Location.ToLower().EndsWith(".gpx"))
@@ -105,11 +117,8 @@
                             const lowerPath = (pathValue || '').toLowerCase();
                             if (lowerPath.startsWith('/documents/')) {
                                 const normalizedDocsPath = `/documents/${pathValue.substring('/documents/'.length)}`;
-                                const pascalDocsPath = `/Documents/${pathValue.substring('/documents/'.length)}`;
                                 pushUnique(normalizedDocsPath);
-                                pushUnique(pascalDocsPath);
                                 pushUnique(`${window.location.origin}${normalizedDocsPath}`);
-                                pushUnique(`${window.location.origin}${pascalDocsPath}`);
                             }
                         };
 
@@ -277,7 +286,7 @@
                 <a href="@Model.Location" target="_blank" onclick="noPropagation()" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Open Link in New Tab")</span><span><i class="bi bi-box-arrow-up-right"></i></span></a>
                 @if (!StaticHelper.GetAttachmentIsInTemp(Model.Location))
                 {
-                    <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
+                    <a data-link="@normalizedLocation" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
                 }
             </div>
         }
