@@ -177,6 +177,11 @@
                         }
                         mapElem.innerHTML = '';
                         const map = L.map('gpxLocalMap', { zoomControl: true });
+                        const scheduleMapInvalidate = () => {
+                            [0, 120, 350, 800].forEach(delay => {
+                                window.setTimeout(() => map.invalidateSize(true), delay);
+                            });
+                        };
                         const tileProviders = [
                             {
                                 name: 'OpenStreetMap Standard',
@@ -216,6 +221,27 @@
                         L.circleMarker(latLngs[0], { radius: 6, color: '#198754', fillColor: '#198754', fillOpacity: 1 }).addTo(map);
                         L.circleMarker(latLngs[latLngs.length - 1], { radius: 6, color: '#dc3545', fillColor: '#dc3545', fillOpacity: 1 }).addTo(map);
                         map.fitBounds(track.getBounds(), { padding: [20, 20] });
+                        scheduleMapInvalidate();
+
+                        const previewModal = document.getElementById('attachmentPreviewModal');
+                        if (previewModal) {
+                            const onModalShown = () => scheduleMapInvalidate();
+                            previewModal.addEventListener('shown.bs.modal', onModalShown, { once: true });
+                        }
+                        const onWindowResize = () => scheduleMapInvalidate();
+                        window.addEventListener('resize', onWindowResize);
+
+                        if (typeof ResizeObserver !== 'undefined') {
+                            const observer = new ResizeObserver(() => scheduleMapInvalidate());
+                            observer.observe(mapElem);
+                            const onModalHidden = () => {
+                                window.removeEventListener('resize', onWindowResize);
+                                observer.disconnect();
+                            };
+                            if (previewModal) {
+                                previewModal.addEventListener('hidden.bs.modal', onModalHidden, { once: true });
+                            }
+                        }
 
                         const deg2rad = d => d * Math.PI / 180;
                         const segmentKm = (a,b) => {
