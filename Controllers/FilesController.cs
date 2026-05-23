@@ -122,5 +122,28 @@ namespace CarCareTracker.Controllers
             var viewModel = new UploadedFiles { Name = fileName, Location = fileLocation };
             return PartialView("_AttachmentPreview", viewModel);
         }
+        [HttpGet]
+        public IActionResult DownloadAttachment(string fileLocation, string fileName)
+        {
+            var fullFilePath = _fileHelper.GetFullFilePath(fileLocation);
+            if (string.IsNullOrWhiteSpace(fullFilePath) || !System.IO.File.Exists(fullFilePath))
+            {
+                return NotFound();
+            }
+
+            var downloadName = StaticHelper.GetAttachmentOriginalName(fileLocation ?? string.Empty, fileName ?? Path.GetFileName(fullFilePath));
+            return PhysicalFile(fullFilePath, "application/octet-stream", downloadName);
+        }
+        [HttpGet]
+        public IActionResult ReadTextAttachment(string fileLocation)
+        {
+            var fullFilePath = _fileHelper.GetFullFilePath(fileLocation);
+            if (string.IsNullOrWhiteSpace(fullFilePath) || !System.IO.File.Exists(fullFilePath))
+            {
+                return NotFound();
+            }
+
+            return PhysicalFile(fullFilePath, "application/gpx+xml");
+        }
     }
 }
