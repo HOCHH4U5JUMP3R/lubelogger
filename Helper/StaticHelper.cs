@@ -779,11 +779,16 @@ namespace CarCareTracker.Helper
         }
         public static bool GetAttachmentIsLink(string fileLocation)
         {
-            return (!fileLocation.StartsWith("/documents") && !fileLocation.StartsWith("documents") && !fileLocation.StartsWith("/temp") && !fileLocation.StartsWith("temp"));
+            var normalizedLocation = fileLocation ?? string.Empty;
+            return (!normalizedLocation.StartsWith("/documents", StringComparison.OrdinalIgnoreCase)
+                && !normalizedLocation.StartsWith("documents", StringComparison.OrdinalIgnoreCase)
+                && !normalizedLocation.StartsWith("/temp", StringComparison.OrdinalIgnoreCase)
+                && !normalizedLocation.StartsWith("temp", StringComparison.OrdinalIgnoreCase));
         }
         public static bool GetAttachmentIsInTemp(string fileLocation)
         {
-            return (fileLocation.StartsWith("/temp") || fileLocation.StartsWith("temp"));
+            var normalizedLocation = fileLocation ?? string.Empty;
+            return (normalizedLocation.StartsWith("/temp", StringComparison.OrdinalIgnoreCase) || normalizedLocation.StartsWith("temp", StringComparison.OrdinalIgnoreCase));
         }
         public static string GetAttachmentOriginalName(string fileLocation, string originalName)
         {

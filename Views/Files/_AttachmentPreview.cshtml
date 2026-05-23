@@ -9,10 +9,24 @@
     var userLanguage = userConfig.UserLanguage;
     var attachmentIsRecord = StaticHelper.GetAttachmentIsRecord(Model.Location, out ImportMode importMode, out int recordId);
     var normalizedLocation = Model.Location ?? string.Empty;
-    if (!string.IsNullOrWhiteSpace(normalizedLocation) && normalizedLocation.StartsWith("/Documents/", StringComparison.OrdinalIgnoreCase))
+    if (!string.IsNullOrWhiteSpace(normalizedLocation))
     {
-        normalizedLocation = "/documents/" + normalizedLocation.Substring("/Documents/".Length);
+        if (normalizedLocation.StartsWith("/documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            normalizedLocation = "/documents/" + normalizedLocation.Substring("/documents/".Length);
+        }
+        else if (Uri.TryCreate(normalizedLocation, UriKind.Absolute, out var parsedLocation) && parsedLocation.AbsolutePath.StartsWith("/documents/", StringComparison.OrdinalIgnoreCase))
+        {
+            var normalizedPath = "/documents/" + parsedLocation.AbsolutePath.Substring("/documents/".Length);
+            var builder = new UriBuilder(parsedLocation)
+            {
+                Path = normalizedPath
+            };
+            normalizedLocation = builder.Uri.ToString();
+        }
     }
+    var downloadUrl = Url.Action("DownloadAttachment", "Files", new { fileLocation = normalizedLocation, fileName = Model.Name }) ?? normalizedLocation;
+    var gpxPreviewUrl = Url.Action("ReadTextAttachment", "Files", new { fileLocation = normalizedLocation }) ?? normalizedLocation;
 }
 <div class="modal-header">
     @if (attachmentIsRecord)
@@ -29,7 +43,7 @@
     }
     else
     {
-        <a href="@normalizedLocation" download="@StaticHelper.GetAttachmentOriginalName(normalizedLocation, Model.Name)">
+        <a href="@downloadUrl">
             <span class="link-body-emphasis"><i class="bi bi-download"></i></span>
         </a>
     }
@@ -39,7 +53,7 @@
     }
     else
     {
-        <h5 class="modal-title" id="updateAccountModalLabel" data-link="@Model.Location" onclick="handleAttachmentCopyLink(this)" style="cursor:pointer;">@Model.Name</h5>
+        <h5 class="modal-title" id="updateAccountModalLabel" data-link="@normalizedLocation" onclick="handleAttachmentCopyLink(this)" style="cursor:pointer;">@Model.Name</h5>
     }
     <a style="cursor:pointer;" onclick="closeAttachmentPreview()"><span class="link-body-emphasis"><i class="bi bi-x-lg"></i></span></a>
 </div>
@@ -55,14 +69,14 @@
         {
             <div class="d-flex align-self-center flex-column">
                 <a href="@Model.Location" target="_blank" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Open Link in New Tab")</span><span><i class="bi bi-box-arrow-up-right"></i></span></a>
-                <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
+                <a data-link="@normalizedLocation" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
             </div>
         }
         else if (Model.Location.ToLower().EndsWith(".gpx"))
         {
             <div class="d-flex flex-column w-100" onclick="noPropagation()">
                 <div class="d-flex gap-2 mb-2 flex-wrap">
-                    <a href="@normalizedLocation" download="@StaticHelper.GetAttachmentOriginalName(normalizedLocation, Model.Name)" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
+                    <a href="@downloadUrl" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
                 </div>
                 <div class="row g-2">
                     <div class="col-lg-8">
@@ -92,52 +106,10 @@
                 (async function renderLocalGpxPreview() {
                     const mapElem = document.getElementById('gpxLocalMap');
                     const infoElem = document.getElementById('gpxInfoList');
-                    const gpxUrlRaw = '@Html.Raw(JavaScriptEncoder.Default.Encode(WebUtility.HtmlDecode(normalizedLocation ?? string.Empty)))';
+                    const gpxUrlRaw = '@Html.Raw(JavaScriptEncoder.Default.Encode(WebUtility.HtmlDecode(gpxPreviewUrl ?? string.Empty)))';
                     const buildCandidateUrls = () => {
-                        const urls = [];
                         const normalizedRaw = (gpxUrlRaw || '').trim();
-                        if (!normalizedRaw) return urls;
-                        const pushUnique = (u) => {
-                            if (u && !urls.includes(u)) urls.push(u);
-                        };
-                        pushUnique(normalizedRaw);
-                        const addDocumentCaseVariants = (pathValue) => {
-                            const lowerPath = (pathValue || '').toLowerCase();
-                            if (lowerPath.startsWith('/documents/')) {
-                                const normalizedDocsPath = `/documents/${pathValue.substring('/documents/'.length)}`;
-                                const pascalDocsPath = `/Documents/${pathValue.substring('/documents/'.length)}`;
-                                pushUnique(normalizedDocsPath);
-                                pushUnique(pascalDocsPath);
-                                pushUnique(`${window.location.origin}${normalizedDocsPath}`);
-                                pushUnique(`${window.location.origin}${pascalDocsPath}`);
-                            }
-                        };
-
-                        if (normalizedRaw.startsWith('/')) {
-                            pushUnique(`${window.location.origin}${normalizedRaw}`);
-                            addDocumentCaseVariants(normalizedRaw);
-                        } else {
-                            try {
-                                const parsedUrl = new URL(normalizedRaw);
-                                if (parsedUrl.pathname) {
-                                    pushUnique(parsedUrl.pathname);
-                                    pushUnique(`${window.location.origin}${parsedUrl.pathname}`);
-                                    addDocumentCaseVariants(parsedUrl.pathname);
-                                }
-                            } catch {
-                                pushUnique(`${window.location.origin}/${normalizedRaw}`);
-                                pushUnique(new URL(normalizedRaw, window.location.href).toString());
-                            }
-                        }
-
-                        try {
-                            const decodedRaw = decodeURIComponent(normalizedRaw);
-                            pushUnique(decodedRaw);
-                            if (decodedRaw.startsWith('/')) {
-                                addDocumentCaseVariants(decodedRaw);
-                            }
-                        } catch { }
-                        return urls;
+                        return normalizedRaw ? [normalizedRaw] : [];
                     };
                     const setMsg = (m) => mapElem.innerHTML = `<div class="small text-muted p-3">${m}</div>`;
                     const setInfoError = (m) => {
@@ -205,15 +177,86 @@
                         }
                         mapElem.innerHTML = '';
                         const map = L.map('gpxLocalMap', { zoomControl: true });
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            maxZoom: 19,
-                            attribution: '&copy; OpenStreetMap'
-                        }).addTo(map);
+                        const scheduleMapInvalidate = () => {
+                            [0, 120, 350, 800].forEach(delay => {
+                                window.setTimeout(() => map.invalidateSize(true), delay);
+                            });
+                        };
+                        const tileProviders = [
+                            {
+                                name: 'OpenStreetMap Standard',
+                                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                options: { maxZoom: 19, attribution: '&copy; OpenStreetMap' }
+                            },
+                            {
+                                name: 'OpenStreetMap DE',
+                                url: 'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
+                                options: { maxZoom: 18, attribution: '&copy; OpenStreetMap contributors' }
+                            },
+                            {
+                                name: 'OpenTopoMap',
+                                url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+                                options: { maxZoom: 17, attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap' }
+                            }
+                        ];
+                        let activeTileIndex = 0;
+                        let activeTileLayer = null;
+                        const setTileProvider = (providerIndex) => {
+                            const provider = tileProviders[providerIndex];
+                            if (!provider) return;
+                            if (activeTileLayer) {
+                                map.removeLayer(activeTileLayer);
+                            }
+                            activeTileIndex = providerIndex;
+                            activeTileLayer = L.tileLayer(provider.url, provider.options).addTo(map);
+                            activeTileLayer.on('tileerror', () => {
+                                if (activeTileIndex < tileProviders.length - 1) {
+                                    setTileProvider(activeTileIndex + 1);
+                                }
+                            });
+                        };
+                        setTileProvider(0);
                         const latLngs = pts.map(p => [p.lat, p.lon]);
                         const track = L.polyline(latLngs, { color: '#0d6efd', weight: 4 }).addTo(map);
                         L.circleMarker(latLngs[0], { radius: 6, color: '#198754', fillColor: '#198754', fillOpacity: 1 }).addTo(map);
                         L.circleMarker(latLngs[latLngs.length - 1], { radius: 6, color: '#dc3545', fillColor: '#dc3545', fillOpacity: 1 }).addTo(map);
-                        map.fitBounds(track.getBounds(), { padding: [20, 20] });
+                        const fitTrackIntoView = () => {
+                            const bounds = track.getBounds();
+                            if (bounds && bounds.isValid()) {
+                                map.fitBounds(bounds, { padding: [24, 24], maxZoom: 16, animate: false });
+                            }
+                        };
+                        fitTrackIntoView();
+                        scheduleMapInvalidate();
+
+                        const previewModal = document.getElementById('attachmentPreviewModal');
+                        if (previewModal) {
+                            const onModalShown = () => {
+                                scheduleMapInvalidate();
+                                window.setTimeout(() => fitTrackIntoView(), 120);
+                            };
+                            previewModal.addEventListener('shown.bs.modal', onModalShown, { once: true });
+                        }
+                        const onWindowResize = () => {
+                            scheduleMapInvalidate();
+                            fitTrackIntoView();
+                        };
+                        window.addEventListener('resize', onWindowResize);
+
+                        if (typeof ResizeObserver !== 'undefined') {
+                            const observer = new ResizeObserver(() => {
+                                scheduleMapInvalidate();
+                                fitTrackIntoView();
+                            });
+                            observer.observe(mapElem);
+                            const onModalHidden = () => {
+                                window.removeEventListener('resize', onWindowResize);
+                                observer.disconnect();
+                            };
+                            if (previewModal) {
+                                previewModal.addEventListener('hidden.bs.modal', onModalHidden, { once: true });
+                            }
+                        }
 
                         const deg2rad = d => d * Math.PI / 180;
                         const segmentKm = (a,b) => {
@@ -273,11 +316,11 @@
         else
         {
             <div class="d-flex align-self-center flex-column">
-                <a href="@normalizedLocation" download="@StaticHelper.GetAttachmentOriginalName(normalizedLocation, Model.Name)" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
+                <a href="@downloadUrl" onclick="noPropagation()" class="btn btn-primary"><span class="me-2">@translator.Translate(userLanguage, "Download File")</span><span><i class="bi bi-download"></i></span></a>
                 <a href="@Model.Location" target="_blank" onclick="noPropagation()" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Open Link in New Tab")</span><span><i class="bi bi-box-arrow-up-right"></i></span></a>
                 @if (!StaticHelper.GetAttachmentIsInTemp(Model.Location))
                 {
-                    <a data-link="@Model.Location" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
+                    <a data-link="@normalizedLocation" href="#" onclick="handleAttachmentCopyLink(this)" class="mt-2 btn btn-secondary"><span class="me-2">@translator.Translate(userLanguage, "Copy Link Address")</span><span><i class="bi bi-link-45deg"></i></span></a>
                 }
             </div>
         }
