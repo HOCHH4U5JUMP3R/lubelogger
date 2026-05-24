@@ -257,6 +257,18 @@ namespace CarCareTracker.Models
             payloadDictionary.Add("user", userName);
             payloadDictionary.Add("description", noteRecord.Description);
             payloadDictionary.Add("vehicleId", noteRecord.VehicleId.ToString());
+
+            var gpxFiles = (noteRecord.Files ?? new List<UploadedFiles>())
+                .Where(x => !string.IsNullOrWhiteSpace(x.Name) && x.Name.EndsWith(".gpx", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (gpxFiles.Any())
+            {
+                payloadDictionary.Add("gpxFileCount", gpxFiles.Count.ToString());
+                payloadDictionary.Add("gpxFileNames", string.Join("|", gpxFiles.Select(x => x.Name)));
+                payloadDictionary.Add("gpxFileLocations", string.Join("|", gpxFiles.Select(x => x.Location ?? string.Empty)));
+            }
+
             return new WebHookPayload
             {
                 Type = actionType,
